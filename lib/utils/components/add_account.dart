@@ -1,79 +1,34 @@
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AddProductScreen extends StatefulWidget {
+import 'package:flutter/material.dart';
+
+class AddAccount extends StatefulWidget {
+  const AddAccount({super.key});
+
   @override
-  _AddProductScreenState createState() => _AddProductScreenState();
+  State<AddAccount> createState() => _AddAccountState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
-  File? _image;
-  final picker = ImagePicker();
+class _AddAccountState extends State<AddAccount> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _purchaseRateController = TextEditingController();
-  final _saleRateController = TextEditingController();
+  final _accountNameController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _contactPersonController = TextEditingController();
   final _mrpController = TextEditingController();
   final _qtyController = TextEditingController();
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
-  bool _isUploadingImage = false;
-
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _isUploadingImage = true;
-      });
-      File imageFile = File(pickedFile.path);
-      File bgRemovedImage = await _removeBackground(imageFile);
-      setState(() {
-        _image = bgRemovedImage;
-        _isUploadingImage = false;
-      });
-    }
-  }
-
-  Future<File> _removeBackground(File imageFile) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('https://api.remove.bg/v1.0/removebg'),
-    );
-    request.headers['X-Api-Key'] = 'VtVBw7j4yoV6DhnMCow42zmv';
-    request.files
-        .add(await http.MultipartFile.fromPath('image_file', imageFile.path));
-    final response = await request.send();
-    final responseBody = await response.stream.toBytes();
-    final tempDir = await getTemporaryDirectory();
-    final bgRemovedImage = File('${tempDir.path}/bg_removed.png');
-    await bgRemovedImage.writeAsBytes(responseBody);
-    return bgRemovedImage;
-  }
 
   @override
   Widget build(BuildContext context) {
     Future<void> _uploadData() async {
-      if (_formKey.currentState!.validate() && _image != null) {
+      if (_formKey.currentState!.validate()) {
         setState(() {
           _isLoading = true;
         });
         try {
-          // Upload image to Firebase Storage
-          final storageRef = FirebaseStorage.instance.ref();
-          final imageRef =
-              storageRef.child('product_images/${basename(_image!.path)}');
-          await imageRef.putFile(_image!);
-          final imageUrl = await imageRef.getDownloadURL();
-
           // Save data to Firestore
           await FirebaseFirestore.instance.collection('products').add({
             'title': _titleController.text,
@@ -83,13 +38,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
             'qty': _qtyController.text,
             'category': _categoryController.text,
             'description': _descriptionController.text,
-            'image_url': imageUrl,
           });
 
           // Clear form
           _formKey.currentState!.reset();
           setState(() {
-            _image = null;
             _isLoading = false;
             _categoryController.clear();
             _descriptionController.clear();
@@ -101,7 +54,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Product added successfully!')));
+              SnackBar(content: Text('Account added successfully!')));
         } catch (e) {
           setState(() {
             _isLoading = false;
@@ -117,7 +70,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sarkar Infotech Pvt. Ltd.'),
+        title: const Text('Malavi Management'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -125,13 +78,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
           key: _formKey,
           child: Column(
             children: [
-              if (_isUploadingImage) CircularProgressIndicator(),
-              if (_image != null && !_isUploadingImage)
-                Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover),
-              TextButton(
-                onPressed: _isUploadingImage ? null : _pickImage,
-                child: const Text('Upload Image'),
-              ),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Title'),

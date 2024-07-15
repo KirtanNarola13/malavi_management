@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
+import 'package:malavi_management/modules/screens/product-screen/all_products.dart';
 
 import '../bill-screen/bill_screen.dart';
 import '../home-screen/home_screen.dart';
-import '../product-screen/product_screen.dart';
+import '../../../utils/components/product_screen.dart';
 import '../profile-screen/profile_screen.dart';
 
 class NavBarScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-     AddProductScreen(),
+    const AllProducts(),
     const BillScreen(),
     const ProfileScreen(),
   ];
@@ -44,7 +45,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.add_box_outlined), label: 'Product'),
+              icon: Icon(Icons.shopping_bag), label: 'Product'),
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet), label: 'Bill'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:malavi_management/utils/components/all_products.dart';
+import 'package:malavi_management/utils/components/add_account.dart';
+import 'package:malavi_management/utils/components/product_screen.dart';
+import 'package:malavi_management/modules/screens/product-screen/all_products.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,11 +19,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: GridView(
         shrinkWrap: true,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(30),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 20,
+          mainAxisSpacing: 30,
+          crossAxisSpacing: 30,
         ),
         children: [
           InkWell(
@@ -29,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AllProducts(),
+                  builder: (context) => AddProductScreen(),
                 ),
               );
             },
@@ -52,13 +54,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 1,
                     ),
                     Icon(
-                      Icons.shopping_bag,
-                      size: 50,
+                      Icons.add_box_outlined,
+                      size: 35,
                     ),
                     Text(
-                      "All Products",
+                      "Add Products",
                       style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           letterSpacing: 1,
                           fontStyle: FontStyle.italic),
                     ),
@@ -70,30 +72,52 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.green.shade200,
-          //     borderRadius: BorderRadius.all(
-          //       Radius.circular(30),
-          //     ),
-          //   ),
-          // ),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.green.shade200,
-          //     borderRadius: BorderRadius.all(
-          //       Radius.circular(30),
-          //     ),
-          //   ),
-          // ),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.green.shade200,
-          //     borderRadius: BorderRadius.all(
-          //       Radius.circular(30),
-          //     ),
-          //   ),
-          // ),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddAccount(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(30),
+            splashColor: Colors.yellow,
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.yellow.withOpacity(0.5),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(30),
+                ),
+              ),
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 1,
+                    ),
+                    Icon(
+                      Icons.account_box_outlined,
+                      size: 35,
+                    ),
+                    Text(
+                      "Add Account",
+                      style: TextStyle(
+                          fontSize: 18,
+                          letterSpacing: 1,
+                          fontStyle: FontStyle.italic),
+                    ),
+                    SizedBox(
+                      height: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
