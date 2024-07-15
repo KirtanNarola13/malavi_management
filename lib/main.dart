@@ -1,6 +1,9 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:malavi_management/modules/screens/nav-bar-screen/nav_bar_screen.dart';
+import 'package:malavi_management/utils/helpers/auth_helper.dart';
 import 'modules/screens/login-screen/view/login.dart';
 import 'modules/screens/signup-screen/view/signup.dart';
 
@@ -9,7 +12,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: HomePage(),
+    home: (AuthHelper.auth.currentUser != null) ? NavBarScreen() : HomePage(),
   ));
 }
 

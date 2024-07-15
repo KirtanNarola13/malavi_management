@@ -41,6 +41,13 @@ dependencies:
   cloud_firestore :
   animate_do:
   flutter_snake_navigationbar:
+  provider:
+  firebase_storage:
+  image_picker:
+  http:
+  path_provider:
+  path:
+  firebase_app_check:
 
 dev_dependencies:
   flutter_test:

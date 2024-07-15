@@ -18,7 +18,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const ProductScreen(),
+     AddProductScreen(),
     const BillScreen(),
     const ProfileScreen(),
   ];

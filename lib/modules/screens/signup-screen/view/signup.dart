@@ -1,6 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:malavi_management/utils/helpers/autu_helper.dart';
+import 'package:malavi_management/utils/helpers/auth_helper.dart';
 import 'package:malavi_management/utils/model/signup_model.dart';
 
 import '../../nav-bar-screen/nav_bar_screen.dart';
