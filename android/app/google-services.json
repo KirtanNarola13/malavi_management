@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "190432291509",
+    "project_id": "malavi-stock",
+    "storage_bucket": "malavi-stock.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:190432291509:android:5e5460786c59892391ecfc",
+        "android_client_info": {
+          "package_name": "com.example.app_code"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "190432291509-2kv1sbmb04f9bm06jg20t15qgrjhtk3q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.app_code",
+            "certificate_hash": "b1188df8c0ce3a381b21d72aa393b77dfa38412c"
+          }
+        },
+        {
+          "client_id": "190432291509-99nnjcd09pp47897365mo8s1f9mpvi51.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWU_bT6Izx5SDaNoq2fR1Wt-lK-OYZIjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "190432291509-99nnjcd09pp47897365mo8s1f9mpvi51.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "190432291509-1hc3odu9bv65d5o6i4f19mciki4vqb2e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appCode"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:190432291509:android:3556bbc428701da391ecfc",
+        "android_client_info": {
+          "package_name": "com.example.malavi_management"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "190432291509-99nnjcd09pp47897365mo8s1f9mpvi51.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWU_bT6Izx5SDaNoq2fR1Wt-lK-OYZIjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "190432291509-99nnjcd09pp47897365mo8s1f9mpvi51.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "190432291509-1hc3odu9bv65d5o6i4f19mciki4vqb2e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appCode"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
