@@ -74,12 +74,21 @@ class _AllProductsState extends State<AllProducts> {
                         fit: BoxFit.cover,
                       ),
                       title: Text(product['title'] ?? 'No title'),
-                      subtitle: Text("Price: \$${product['price']}"),
+                      subtitle: Text("category : ${product['category']}"),
                       children: [
                         ListTile(
                           title:
                               Text(product['description'] ?? 'No description'),
-                          subtitle: Text("Category: ${product['category']}"),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  "Pur rate :${product['pur_rate'] ?? 'No Pur rate'}"),
+                              Text(
+                                  "Sale rate :${product['sale_rate'] ?? 'No Sale rate'}"),
+                              Text("Mrp rate :${product['mrp'] ?? 'No Mrp'}"),
+                            ],
+                          ),
                           trailing: Text("Qty: ${product['qty']}"),
                         ),
                         ButtonBar(
@@ -90,11 +99,11 @@ class _AllProductsState extends State<AllProducts> {
                                 // For simplicity, you can print the product ID here
                                 print("Edit product: ${product['id']}");
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.edit,
                                 color: Colors.black,
                               ),
-                              label: Text(
+                              label: const Text(
                                 'Edit',
                                 style: TextStyle(
                                   color: Colors.black,
@@ -107,15 +116,15 @@ class _AllProductsState extends State<AllProducts> {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: Text("Delete Product"),
-                                    content: Text(
+                                    title: const Text("Delete Product"),
+                                    content: const Text(
                                         "Are you sure you want to delete this product?"),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
-                                        child: Text(
+                                        child: const Text(
                                           "Cancel",
                                           style: TextStyle(
                                             color: Colors.black,
@@ -127,7 +136,7 @@ class _AllProductsState extends State<AllProducts> {
                                           Navigator.pop(context);
                                           _deleteProduct(product['id']);
                                         },
-                                        child: Text(
+                                        child: const Text(
                                           "Delete",
                                           style: TextStyle(
                                             color: Colors.black,
@@ -138,11 +147,11 @@ class _AllProductsState extends State<AllProducts> {
                                   ),
                                 );
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.delete,
                                 color: Colors.black,
                               ),
-                              label: Text(
+                              label: const Text(
                                 'Delete',
                                 style: TextStyle(
                                   color: Colors.black,

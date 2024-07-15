@@ -19,7 +19,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _purchaseRateController = TextEditingController();
+  final _saleRateController = TextEditingController();
+  final _mrpController = TextEditingController();
   final _qtyController = TextEditingController();
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -47,7 +49,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       Uri.parse('https://api.remove.bg/v1.0/removebg'),
     );
     request.headers['X-Api-Key'] = 'VtVBw7j4yoV6DhnMCow42zmv';
-    request.files.add(await http.MultipartFile.fromPath('image_file', imageFile.path));
+    request.files
+        .add(await http.MultipartFile.fromPath('image_file', imageFile.path));
     final response = await request.send();
     final responseBody = await response.stream.toBytes();
     final tempDir = await getTemporaryDirectory();
@@ -55,8 +58,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     await bgRemovedImage.writeAsBytes(responseBody);
     return bgRemovedImage;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +69,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
         try {
           // Upload image to Firebase Storage
           final storageRef = FirebaseStorage.instance.ref();
-          final imageRef = storageRef.child('product_images/${basename(_image!.path)}');
+          final imageRef =
+              storageRef.child('product_images/${basename(_image!.path)}');
           await imageRef.putFile(_image!);
           final imageUrl = await imageRef.getDownloadURL();
 
           // Save data to Firestore
           await FirebaseFirestore.instance.collection('products').add({
             'title': _titleController.text,
-            'price': _priceController.text,
+            'pur_rate': _purchaseRateController.text,
+            'sale_rate': _saleRateController.text,
+            'mrp': _mrpController.text,
             'qty': _qtyController.text,
             'category': _categoryController.text,
             'description': _descriptionController.text,
@@ -89,22 +93,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
             _isLoading = false;
             _categoryController.clear();
             _descriptionController.clear();
-            _priceController.clear();
+            _purchaseRateController.clear();
+            _saleRateController.clear();
+            _mrpController.clear();
             _qtyController.clear();
             _titleController.clear();
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Product added successfully!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Product added successfully!')));
         } catch (e) {
           setState(() {
             _isLoading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add product: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to add product: $e')));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please fill all fields and upload an image.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Please fill all fields and upload an image.')));
       }
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sarkar Infotech Pvt. Ltd.'),
@@ -116,7 +126,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
           child: Column(
             children: [
               if (_isUploadingImage) CircularProgressIndicator(),
-              if (_image != null && !_isUploadingImage) Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover),
+              if (_image != null && !_isUploadingImage)
+                Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover),
               TextButton(
                 onPressed: _isUploadingImage ? null : _pickImage,
                 child: const Text('Upload Image'),
@@ -127,9 +138,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 validator: (value) => value!.isEmpty ? 'Enter title' : null,
               ),
               TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
-                validator: (value) => value!.isEmpty ? 'Enter price' : null,
+                controller: _purchaseRateController,
+                decoration: const InputDecoration(labelText: 'Pur rate'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Enter purchase rate' : null,
+              ),
+              TextFormField(
+                controller: _saleRateController,
+                decoration: const InputDecoration(labelText: 'Sale rate'),
+                validator: (value) => value!.isEmpty ? 'Enter sale rate' : null,
+              ),
+              TextFormField(
+                controller: _mrpController,
+                decoration: const InputDecoration(labelText: 'Mrp'),
+                validator: (value) => value!.isEmpty ? 'Enter mrp' : null,
               ),
               TextFormField(
                 controller: _qtyController,
@@ -144,15 +166,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
-                validator: (value) => value!.isEmpty ? 'Enter description' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Enter description' : null,
               ),
               const SizedBox(height: 20),
               _isLoading
                   ? CircularProgressIndicator()
                   : ElevatedButton(
-                onPressed: _uploadData,
-                child: const Text('Add Product'),
-              ),
+                      onPressed: _uploadData,
+                      child: const Text('Add Product'),
+                    ),
             ],
           ),
         ),
