@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'edit.dart';
 
 class AllProducts extends StatefulWidget {
   const AllProducts({Key? key}) : super(key: key);
@@ -27,11 +28,9 @@ class _AllProductsState extends State<AllProducts> {
   void _deleteProduct(String productId) async {
     try {
       await _firestore.collection('products').doc(productId).delete();
-      // Optionally, show a success message or update UI
+      setState(() {}); // Refresh the list after deleting
     } catch (e) {
-      // Handle error
       print("Error deleting product: $e");
-      // Optionally, show an error message
     }
   }
 
@@ -64,29 +63,26 @@ class _AllProductsState extends State<AllProducts> {
                   color: Colors.yellow.shade50.withOpacity(0.5),
                   child: Theme(
                     data:
-                        ThemeData().copyWith(dividerColor: Colors.transparent),
+                    ThemeData().copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       leading: Image.network(
-                        product[
-                            'image_url'], // Replace with your image URL from Firestore
-                        width: 50, // Adjust size as needed
+                        product['image_url'],
+                        width: 50,
                         height: 50,
                         fit: BoxFit.cover,
                       ),
                       title: Text(product['title'] ?? 'No title'),
-                      subtitle: Text("category : ${product['category']}"),
+                      subtitle: Text("Category: ${product['category']}"),
                       children: [
                         ListTile(
                           title:
-                              Text(product['description'] ?? 'No description'),
+                          Text(product['description'] ?? 'No description'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                  "Pur rate :${product['pur_rate'] ?? 'No Pur rate'}"),
-                              Text(
-                                  "Sale rate :${product['sale_rate'] ?? 'No Sale rate'}"),
-                              Text("Mrp rate :${product['mrp'] ?? 'No Mrp'}"),
+                              Text("Pur rate: ${product['pur_rate'] ?? 'No Pur rate'}"),
+                              Text("Sale rate: ${product['sale_rate'] ?? 'No Sale rate'}"),
+                              Text("Mrp rate: ${product['mrp'] ?? 'No Mrp'}"),
                             ],
                           ),
                           trailing: Text("Qty: ${product['qty']}"),
@@ -94,10 +90,18 @@ class _AllProductsState extends State<AllProducts> {
                         ButtonBar(
                           children: [
                             TextButton.icon(
-                              onPressed: () {
-                                // Navigate to edit screen or show dialog
-                                // For simplicity, you can print the product ID here
-                                print("Edit product: ${product['id']}");
+                              onPressed: () async {
+                                // Navigate to edit screen
+                                bool? result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditProduct(product: product),
+                                  ),
+                                );
+                                if (result == true) {
+                                  // Refresh the list after editing
+                                  setState(() {});
+                                }
                               },
                               icon: const Icon(
                                 Icons.edit,

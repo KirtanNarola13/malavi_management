@@ -2,19 +2,20 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AddProductScreen extends StatefulWidget {
+  const AddProductScreen({super.key});
+
   @override
   _AddProductScreenState createState() => _AddProductScreenState();
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
+  // final _formKey = GlobalKey<FormState>();
   File? _image;
   final picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
@@ -49,33 +50,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
       Uri.parse('https://api.remove.bg/v1.0/removebg'),
     );
     request.headers['X-Api-Key'] = 'VtVBw7j4yoV6DhnMCow42zmv';
-    request.files
-        .add(await http.MultipartFile.fromPath('image_file', imageFile.path));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'image_file',
+        imageFile.path,
+      ),
+    );
     final response = await request.send();
     final responseBody = await response.stream.toBytes();
     final tempDir = await getTemporaryDirectory();
-    final bgRemovedImage = File('${tempDir.path}/bg_removed.png');
+    final bgRemovedImage = File(
+      '${tempDir.path}/bg_removed_${DateTime.now().millisecondsSinceEpoch}.png',
+    );
     await bgRemovedImage.writeAsBytes(responseBody);
     return bgRemovedImage;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Future<void> _uploadData() async {
-      if (_formKey.currentState!.validate() && _image != null) {
-        setState(() {
-          _isLoading = true;
-        });
-        try {
-          // Upload image to Firebase Storage
-          final storageRef = FirebaseStorage.instance.ref();
-          final imageRef =
-              storageRef.child('product_images/${basename(_image!.path)}');
-          await imageRef.putFile(_image!);
-          final imageUrl = await imageRef.getDownloadURL();
+  Future<void> _uploadData() async {
+    if (_formKey.currentState!.validate() && _image != null) {
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        // Upload image to Firebase Storage
+        final storageRef = FirebaseStorage.instance.ref();
+        final imageRef =
+            storageRef.child('product_images/${basename(_image!.path)}');
+        await imageRef.putFile(_image!);
+        final imageUrl = await imageRef.getDownloadURL();
 
-          // Save data to Firestore
-          await FirebaseFirestore.instance.collection('products').add({
+        // Save data to Firestore
+        await FirebaseFirestore.instance.collection('products').add(
+          {
             'title': _titleController.text,
             'pur_rate': _purchaseRateController.text,
             'sale_rate': _saleRateController.text,
@@ -84,97 +90,144 @@ class _AddProductScreenState extends State<AddProductScreen> {
             'category': _categoryController.text,
             'description': _descriptionController.text,
             'image_url': imageUrl,
-          });
+          },
+        );
 
-          // Clear form
-          _formKey.currentState!.reset();
-          setState(() {
-            _image = null;
-            _isLoading = false;
-            _categoryController.clear();
-            _descriptionController.clear();
-            _purchaseRateController.clear();
-            _saleRateController.clear();
-            _mrpController.clear();
-            _qtyController.clear();
-            _titleController.clear();
-          });
+        // Clear form
+        _formKey.currentState!.reset();
+        setState(() {
+          _image = null;
+          _isLoading = false;
+          _categoryController.clear();
+          _descriptionController.clear();
+          _purchaseRateController.clear();
+          _saleRateController.clear();
+          _mrpController.clear();
+          _qtyController.clear();
+          _titleController.clear();
+        });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Product added successfully!')));
-        } catch (e) {
-          setState(() {
-            _isLoading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to add product: $e')));
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Please fill all fields and upload an image.')));
+        ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Product added successfully!',
+            ),
+          ),
+        );
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to add product: $e',
+            ),
+          ),
+        );
       }
+    } else {
+      ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please fill all fields and upload an image.',
+          ),
+        ),
+      );
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Malavi Management'),
+        title: const Text(
+          'Sarkar Infotech Pvt. Ltd.',
+        ),
+        backgroundColor: Colors.yellow[700],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(
+          20,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              if (_isUploadingImage) CircularProgressIndicator(),
+              if (_isUploadingImage) const CircularProgressIndicator(),
               if (_image != null && !_isUploadingImage)
-                Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover),
-              TextButton(
-                onPressed: _isUploadingImage ? null : _pickImage,
-                child: const Text('Upload Image'),
-              ),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) => value!.isEmpty ? 'Enter title' : null,
-              ),
-              TextFormField(
-                controller: _purchaseRateController,
-                decoration: const InputDecoration(labelText: 'Pur rate'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter purchase rate' : null,
-              ),
-              TextFormField(
-                controller: _saleRateController,
-                decoration: const InputDecoration(labelText: 'Sale rate'),
-                validator: (value) => value!.isEmpty ? 'Enter sale rate' : null,
-              ),
-              TextFormField(
-                controller: _mrpController,
-                decoration: const InputDecoration(labelText: 'Mrp'),
-                validator: (value) => value!.isEmpty ? 'Enter mrp' : null,
-              ),
-              TextFormField(
-                controller: _qtyController,
-                decoration: const InputDecoration(labelText: 'Qty'),
-                validator: (value) => value!.isEmpty ? 'Enter qty' : null,
-              ),
-              TextFormField(
-                controller: _categoryController,
-                decoration: const InputDecoration(labelText: 'Category'),
-                validator: (value) => value!.isEmpty ? 'Enter category' : null,
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter description' : null,
-              ),
+                CircleAvatar(
+                  maxRadius: 60,
+                  backgroundImage: FileImage(_image!),
+                  backgroundColor: Colors.transparent,
+                ),
               const SizedBox(height: 20),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                    Colors.yellow[700]!,
+                  ),
+                ),
+                onPressed: _isUploadingImage ? null : _pickImage,
+                child: const Text(
+                  'Upload Image',
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              _buildTextFormField(_titleController, 'Title', 'Enter title'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(
+                  _purchaseRateController, 'Pur rate', 'Enter purchase rate'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(
+                  _saleRateController, 'Sale rate', 'Enter sale rate'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(_mrpController, 'Mrp', 'Enter mrp'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(_qtyController, 'Qty', 'Enter qty'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(
+                  _categoryController, 'Category', 'Enter category'),
+              const SizedBox(
+                height: 10,
+              ),
+              _buildTextFormField(
+                  _descriptionController, 'Description', 'Enter description'),
+              const SizedBox(
+                height: 20,
+              ),
               _isLoading
-                  ? CircularProgressIndicator()
+                  ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: _uploadData,
-                      child: const Text('Add Product'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow[700],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 10,
+                        ),
+                      ),
+                      child: const Text(
+                        'Add Product',
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
                     ),
             ],
           ),
@@ -182,4 +235,39 @@ class _AddProductScreenState extends State<AddProductScreen> {
       ),
     );
   }
+
+  Widget _buildTextFormField(
+      TextEditingController controller, String label, String validationMsg) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+            10,
+          ),
+        ),
+      ),
+      validator: (value) => value!.isEmpty ? validationMsg : null,
+    );
+  }
+}
+
+void main() {
+  runApp(
+    MaterialApp(
+      theme: ThemeData(
+        primaryColor: Colors.yellow[700],
+        hintColor: Colors.yellow[700],
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.yellow[700],
+          textTheme: ButtonTextTheme.primary,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.yellow[700],
+        ),
+      ),
+      home: const AddProductScreen(),
+    ),
+  );
 }
