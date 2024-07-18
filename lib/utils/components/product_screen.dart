@@ -182,8 +182,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     .collection('category')
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData)
+                  if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
+                  }
                   return DropdownButtonFormField<String>(
                     value: _category,
                     onChanged: (value) => setState(() => _category = value),
@@ -210,8 +211,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     .collection('company')
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData)
+                  if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
+                  }
                   return DropdownButtonFormField<String>(
                     value: _company,
                     onChanged: (value) => setState(() => _company = value),

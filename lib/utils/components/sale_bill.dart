@@ -30,10 +30,15 @@ class _SellBillScreenState extends State<SellBillScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Sell Bill'),
+        title: const Text(
+          'Create Sell Bill',
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.only(
+          left: 8,
+          right: 8,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -43,9 +48,9 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   .collection('purchase party account')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return CircularProgressIndicator();
+                if (!snapshot.hasData) return const CircularProgressIndicator();
                 return DropdownButton<String>(
-                  hint: Text('Select Purchase Party'),
+                  hint: const Text('Select Purchase Party'),
                   value: selectedParty,
                   items: snapshot.data?.docs.map((doc) {
                     return DropdownMenuItem<String>(
@@ -61,16 +66,16 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 );
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             // Dropdown to select product from "productStock" collection
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('productStock')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return CircularProgressIndicator();
+                if (!snapshot.hasData) return const CircularProgressIndicator();
                 return DropdownButton<String>(
-                  hint: Text('Select Product'),
+                  hint: const Text('Select Product'),
                   value: selectedProduct,
                   items: snapshot.data?.docs.map((doc) {
                     return DropdownMenuItem<String>(
@@ -88,7 +93,6 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 );
               },
             ),
-            SizedBox(height: 10),
             // Dropdown to select party's product associated with selected product
             if (selectedProduct != null)
               StreamBuilder<QuerySnapshot>(
@@ -98,9 +102,11 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     .collection('purchaseHistory')
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return CircularProgressIndicator();
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
                   return DropdownButton<String>(
-                    hint: Text('Select Party\'s Product'),
+                    hint: const Text('Select Party\'s Product'),
                     value: selectedPartyProduct,
                     items: snapshot.data?.docs.map((doc) {
                       return DropdownMenuItem<String>(
@@ -111,7 +117,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                             Text(doc['partyName']),
                             Text(
                               "MRP: ${doc['mrp']} | Margin: ${doc['margin']} | Purchase Rate: ${doc['purchaseRate']}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 10,
                               ),
                             ),
@@ -139,9 +145,19 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   );
                 },
               ),
-            SizedBox(height: 10),
-            TextField(
-              decoration: InputDecoration(labelText: 'Quantity'),
+            const SizedBox(height: 15),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Quantity',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               onChanged: (value) {
                 setState(() {
@@ -150,14 +166,37 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 });
               },
             ),
+            const SizedBox(height: 5),
             TextField(
-              decoration: InputDecoration(labelText: 'MRP'),
+              decoration: const InputDecoration(
+                labelText: 'MRP',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               readOnly: true,
               controller: mrpController,
             ),
+            const SizedBox(height: 5),
+
             TextField(
-              decoration: InputDecoration(labelText: 'Margin (%)'),
+              decoration: const InputDecoration(
+                labelText: 'Margin (%)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               controller: marginController,
               onChanged: (value) {
@@ -169,8 +208,20 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 });
               },
             ),
+            const SizedBox(height: 5),
+
             TextField(
-              decoration: InputDecoration(labelText: 'Sale Rate'),
+              decoration: const InputDecoration(
+                labelText: 'Sale Rate',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               controller: saleRateController,
               onChanged: (value) {
@@ -180,14 +231,38 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 });
               },
             ),
+            const SizedBox(height: 5),
+
             TextField(
-              decoration: InputDecoration(labelText: 'Amount'),
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               controller: amountController,
               readOnly: true,
             ),
+            const SizedBox(height: 5),
+
             TextField(
-              decoration: InputDecoration(labelText: 'Discount'),
+              decoration: const InputDecoration(
+                labelText: 'Discount',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(color: Colors.yellow),
+                ),
+              ),
               keyboardType: TextInputType.number,
               controller: discountController,
               onChanged: (value) {
@@ -197,18 +272,46 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 });
               },
             ),
+            const SizedBox(height: 5),
+
             TextField(
-              decoration: InputDecoration(labelText: 'Net Amount'),
+              decoration: const InputDecoration(
+                labelText: 'Net Amount',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      10.0,
+                    ),
+                  ),
+                  borderSide: BorderSide(
+                    color: Colors.yellow,
+                  ),
+                ),
+              ),
               keyboardType: TextInputType.number,
               readOnly: true,
               controller: netAmountController,
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: addProductToBill,
-              child: Text('Add Product to Bill'),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: addProductToBill,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[700],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 10,
+                  ),
+                ),
+                child: const Text(
+                  'add product bill',
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 5),
             Expanded(
               child: ListView.builder(
                 itemCount: billItems.length,
@@ -218,7 +321,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     title: Text(item['productName']),
                     subtitle: Text('Quantity: ${item['quantity']}'),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: () {
                         setState(() {
                           billItems.removeAt(index);
@@ -229,11 +332,29 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 },
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveSellBill,
-              child: Text('Save Sell Bill'),
+            const SizedBox(height: 5),
+            Center(
+              child: ElevatedButton(
+                onPressed: saveSellBill,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[700],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 10,
+                  ),
+                ),
+                child: const Text(
+                  'Add Product',
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
             ),
+            // ElevatedButton(
+            //   onPressed: saveSellBill,
+            //   child: const Text('Save Sell Bill'),
+            // ),
           ],
         ),
       ),
@@ -323,7 +444,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill all fields')),
+        const SnackBar(content: Text('Please fill all fields')),
       );
     }
   }
@@ -358,7 +479,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sell Bill Saved')),
+        const SnackBar(content: Text('Sell Bill Saved')),
       );
 
       setState(() {
@@ -366,7 +487,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No items to save')),
+        const SnackBar(content: Text('No items to save')),
       );
     }
   }

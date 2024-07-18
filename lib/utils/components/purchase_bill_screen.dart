@@ -32,111 +32,199 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         title: const Text('Create Purchase Bill'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            // Dropdown to select purchase party from "purchase party account" collection
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('purchase party account')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
-                return DropdownButton<String>(
-                  hint: const Text('Select Purchase Party'),
-                  value: selectedParty,
-                  items: snapshot.data?.docs.map((doc) {
-                    return DropdownMenuItem<String>(
-                      value: doc.id,
-                      child: Text(doc['account_name']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedParty = value!;
-                    });
-                  },
-                );
-              },
-            ),
-            // Dropdown to select product
-            StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('products').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
-                return DropdownButton<String>(
-                  hint: const Text('Select Product'),
-                  value: selectedProduct,
-                  items: snapshot.data?.docs.map((doc) {
-                    return DropdownMenuItem<String>(
-                      value: doc.id,
-                      child: Text(doc['title']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedProduct = value!;
-                    });
-                  },
-                );
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Quantity'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  quantity = int.tryParse(value);
-                  calculateTotalAmount();
-                });
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'MRP'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  mrp = double.tryParse(value);
-                  calculatePurchaseRate();
-                });
-              },
-            ),
-            TextField(
-              controller: marginController,
-              decoration: const InputDecoration(labelText: 'Margin (%)'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  margin = double.tryParse(value) ?? 0.0;
-                  calculatePurchaseRate();
-                });
-              },
-            ),
-            TextField(
-              controller: purchaseRateController,
-              decoration: const InputDecoration(labelText: 'Purchase Rate'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  purchaseRate = double.tryParse(value) ?? 0.0;
-                  calculateMargin();
-                  calculateTotalAmount();
-                });
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Total Amount'),
-              keyboardType: TextInputType.number,
-              readOnly: true,
-              controller: totalAmountController,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: savePurchaseBill,
-              child: const Text('Save Purchase Bill'),
-            ),
-          ],
+        padding: const EdgeInsets.all(10),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Dropdown to select purchase party from "purchase party account" collection
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('purchase party account')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  return DropdownButton<String>(
+                    hint: const Text('Select Purchase Party'),
+                    value: selectedParty,
+                    items: snapshot.data?.docs.map((doc) {
+                      return DropdownMenuItem<String>(
+                        value: doc.id,
+                        child: Text(doc['account_name']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedParty = value!;
+                      });
+                    },
+                  );
+                },
+              ),
+              // Dropdown to select product
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  return DropdownButton<String>(
+                    hint: const Text(
+                      'Select Product',
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                    value: selectedProduct,
+                    items: snapshot.data?.docs.map((doc) {
+                      return DropdownMenuItem<String>(
+                        value: doc.id,
+                        child: Text(doc['title']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProduct = value!;
+                      });
+                    },
+                  );
+                },
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    quantity = int.tryParse(value);
+                    calculateTotalAmount();
+                  });
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'MRP',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    mrp = double.tryParse(value);
+                    calculatePurchaseRate();
+                  });
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+
+              TextField(
+                controller: marginController,
+                decoration: const InputDecoration(
+                  labelText: 'Margin (%)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    margin = double.tryParse(value) ?? 0.0;
+                    calculatePurchaseRate();
+                  });
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+
+              TextField(
+                controller: purchaseRateController,
+                decoration: const InputDecoration(
+                  labelText: 'Purchase Rate',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    purchaseRate = double.tryParse(value) ?? 0.0;
+                    calculateMargin();
+                    calculateTotalAmount();
+                  });
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Total Amount',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                readOnly: true,
+                controller: totalAmountController,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: savePurchaseBill,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[700],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 10,
+                  ),
+                ),
+                child: const Text('Save Purchase Bill'),
+              ),
+            ],
+          ),
         ),
       ),
     );

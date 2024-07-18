@@ -54,7 +54,7 @@ class _AddAccountState extends State<AddAccount> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Account added successfully!')));
+            const SnackBar(content: Text('Account added successfully!')));
       } catch (e) {
         setState(() {
           _isLoading = false;
@@ -63,8 +63,8 @@ class _AddAccountState extends State<AddAccount> {
             .showSnackBar(SnackBar(content: Text('Failed to add account: $e')));
       }
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Please fill all fields.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all fields.')));
     }
   }
 
@@ -82,23 +82,72 @@ class _AddAccountState extends State<AddAccount> {
             children: [
               TextFormField(
                 controller: _accountNameController,
-                decoration: const InputDecoration(labelText: 'Account Name'),
+                decoration: const InputDecoration(
+                  labelText: 'Account Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
                 validator: (value) =>
                     value!.isEmpty ? 'Enter account name' : null,
               ),
+              const SizedBox(
+                height: 10,
+              ),
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Enter address' : null,
+              ),
+              const SizedBox(
+                height: 10,
               ),
               TextFormField(
                 controller: _phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
                 validator: (value) =>
                     value!.isEmpty ? 'Enter phone number' : null,
               ),
+              const SizedBox(
+                height: 10,
+              ),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Account Type'),
+                decoration: const InputDecoration(
+                  labelText: 'Account Type',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(
+                        10.0,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.yellow),
+                  ),
+                ),
                 value: _selectedAccountType,
                 items: const [
                   DropdownMenuItem(
@@ -107,7 +156,9 @@ class _AddAccountState extends State<AddAccount> {
                   ),
                   DropdownMenuItem(
                     value: 'Purchase party',
-                    child: Text('Purchase Party'),
+                    child: Text(
+                      'Purchase Party',
+                    ),
                   ),
                 ],
                 onChanged: (value) {
@@ -118,12 +169,23 @@ class _AddAccountState extends State<AddAccount> {
                 validator: (value) =>
                     value == null ? 'Select account type' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(
+                height: 20,
+              ),
               _isLoading
-                  ? CircularProgressIndicator()
+                  ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: _uploadData,
-                      child: const Text('Add Account'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow[700],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 10,
+                        ),
+                      ),
+                      child: const Text(
+                        'Add Account',
+                      ),
                     ),
             ],
           ),

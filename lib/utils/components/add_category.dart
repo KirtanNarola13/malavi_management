@@ -103,7 +103,7 @@ class _AddCategoryState extends State<AddCategory> {
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: AddCategory(),
   ));
 }
