@@ -190,7 +190,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     onChanged: (value) => setState(() => _category = value),
                     items: snapshot.data!.docs.map((doc) {
                       return DropdownMenuItem<String>(
-                        value: doc.id,
+                        value: doc['name'],
                         child: Text(doc['name']),
                       );
                     }).toList(),
@@ -219,8 +219,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     onChanged: (value) => setState(() => _company = value),
                     items: snapshot.data!.docs.map((doc) {
                       return DropdownMenuItem<String>(
-                        value: doc.id,
-                        child: Text(doc['name']),
+                        value: doc['name'], // Use company name as the value
+                        child: Text(
+                            doc['name']), // Display company name in dropdown
                       );
                     }).toList(),
                     decoration: InputDecoration(

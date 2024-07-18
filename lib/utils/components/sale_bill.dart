@@ -54,7 +54,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   value: selectedParty,
                   items: snapshot.data?.docs.map((doc) {
                     return DropdownMenuItem<String>(
-                      value: doc.id,
+                      value: doc['account_name'],
                       child: Text(doc['account_name']),
                     );
                   }).toList(),
@@ -79,7 +79,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   value: selectedProduct,
                   items: snapshot.data?.docs.map((doc) {
                     return DropdownMenuItem<String>(
-                      value: doc.id,
+                      value: doc['title'],
                       child: Text(doc['title']),
                     );
                   }).toList(),
@@ -417,11 +417,9 @@ class _SellBillScreenState extends State<SellBillScreen> {
         amount != null &&
         netAmount != null) {
       final item = {
-        'partyId': selectedParty,
-        'productId': selectedProduct,
-        'partyProductId': selectedPartyProduct,
         'productName':
-            selectedPartyProduct, // Adjust as needed based on actual data structure
+            selectedProduct, // Adjust as needed based on actual data structure
+        'partyName': selectedParty,
         'quantity': quantity,
         'mrp': mrpController.text,
         'margin': marginController.text,
@@ -457,9 +455,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
       for (var item in billItems) {
         grandTotal += item['netAmount'];
         itemsToSave.add({
-          'partyId': item['partyId'],
-          'productId': item['productId'],
-          'partyProductId': item['partyProductId'],
+          'partyName': item['partyName'],
           'productName': item['productName'],
           'quantity': item['quantity'],
           'mrp': item['mrp'],
@@ -468,14 +464,17 @@ class _SellBillScreenState extends State<SellBillScreen> {
           'amount': item['amount'],
           'discount': item['discount'],
           'netAmount': item['netAmount'],
-          'date': Timestamp.now(),
+          'date':
+              "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
         });
       }
 
       await FirebaseFirestore.instance.collection('sellBills').add({
         'grandTotal': grandTotal,
         'items': itemsToSave,
-        'date': Timestamp.now(),
+        'date':
+            "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+        'party_name': selectedParty,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

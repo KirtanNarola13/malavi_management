@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:malavi_management/utils/components/add_account.dart';
 import 'package:malavi_management/utils/components/add_category.dart';
@@ -33,370 +34,410 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: 30,
         ),
         children: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddProductScreen(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddProductScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.add_box_outlined,
-                      size: 35,
-                    ),
-                    Text(
-                      "Add Products",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.add_box_outlined,
+                        size: 35,
+                      ),
+                      Text(
+                        "Add Products",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ViewStock(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ViewStock(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.inventory_outlined,
-                      size: 35,
-                    ),
-                    Text(
-                      "View Stock",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.inventory_outlined,
+                        size: 35,
+                      ),
+                      Text(
+                        "View Stock",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddAccount(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddAccount(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.account_box_outlined,
-                      size: 35,
-                    ),
-                    Text(
-                      "Add Account",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.account_box_outlined,
+                        size: 35,
+                      ),
+                      Text(
+                        "Add Account",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddCompany(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddCompany(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.apartment,
-                      size: 35,
-                    ),
-                    Text(
-                      "Add Company",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.apartment,
+                        size: 35,
+                      ),
+                      Text(
+                        "Add Company",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddCategory(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddCategory(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.category,
-                      size: 35,
-                    ),
-                    Text(
-                      "Add Category",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.category,
+                        size: 35,
+                      ),
+                      Text(
+                        "Add Category",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PurchaseBillScreen(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PurchaseBillScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.add_shopping_cart,
-                      size: 35,
-                    ),
-                    Text(
-                      "Purchase Bill",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.add_shopping_cart,
+                        size: 35,
+                      ),
+                      Text(
+                        "Purchase Bill",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PurchaseBillHistory(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PurchaseBillHistory(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.history,
-                      size: 35,
-                    ),
-                    Text(
-                      "P.Bill History",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.history,
+                        size: 35,
+                      ),
+                      Text(
+                        "P.Bill History",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SellBillScreen(),
+          FadeInUp(
+            duration: const Duration(
+              milliseconds: 1500,
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SellBillScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.yellow,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.yellow.withOpacity(0.5),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(30),
+                  ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.yellow,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.5),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(30),
-                ),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 1,
-                    ),
-                    Icon(
-                      Icons.sell_outlined,
-                      size: 35,
-                    ),
-                    Text(
-                      "Sale Bill",
-                      style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1,
-                          fontStyle: FontStyle.italic),
-                    ),
-                    SizedBox(
-                      height: 1,
-                    ),
-                  ],
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Icons.sell_outlined,
+                        size: 35,
+                      ),
+                      Text(
+                        "Sale Bill",
+                        style: TextStyle(
+                            fontSize: 18,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic),
+                      ),
+                      SizedBox(
+                        height: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

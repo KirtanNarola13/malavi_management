@@ -65,29 +65,21 @@ class _AllProductsState extends State<AllProducts> {
                     data:
                         ThemeData().copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      leading: Image.network(
-                        product['image_url'],
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
+                      leading: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        backgroundImage: NetworkImage(
+                          product['image_url'],
+                        ),
                       ),
                       title: Text(product['title'] ?? 'No title'),
                       subtitle: Text("Category: ${product['category']}"),
                       children: [
                         ListTile(
-                          title:
-                              Text(product['description'] ?? 'No description'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  "Pur rate: ${product['pur_rate'] ?? 'No Pur rate'}"),
-                              Text(
-                                  "Sale rate: ${product['sale_rate'] ?? 'No Sale rate'}"),
-                              Text("Mrp rate: ${product['mrp'] ?? 'No Mrp'}"),
-                            ],
-                          ),
-                          trailing: Text("Qty: ${product['qty']}"),
+                          title: Text(
+                              "Company : ${product['company'] ?? 'No company'}"),
+                          subtitle:
+                              Text("Unit : ${product['units'] ?? 'No units'}"),
                         ),
                         ButtonBar(
                           children: [

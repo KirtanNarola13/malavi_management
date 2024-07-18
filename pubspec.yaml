@@ -48,6 +48,9 @@ dependencies:
   path_provider:
   path:
   firebase_app_check:
+  pdf:
+  printing:
+  share:
 
 dev_dependencies:
   flutter_test:
