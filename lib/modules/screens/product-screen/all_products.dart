@@ -60,10 +60,10 @@ class _AllProductsState extends State<AllProducts> {
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Card(
-                  color: Colors.yellow.shade50.withOpacity(0.5),
+                  color: Colors.yellow.shade200.withOpacity(0.8),
                   child: Theme(
                     data:
-                    ThemeData().copyWith(dividerColor: Colors.transparent),
+                        ThemeData().copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       leading: Image.network(
                         product['image_url'],
@@ -76,12 +76,14 @@ class _AllProductsState extends State<AllProducts> {
                       children: [
                         ListTile(
                           title:
-                          Text(product['description'] ?? 'No description'),
+                              Text(product['description'] ?? 'No description'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Pur rate: ${product['pur_rate'] ?? 'No Pur rate'}"),
-                              Text("Sale rate: ${product['sale_rate'] ?? 'No Sale rate'}"),
+                              Text(
+                                  "Pur rate: ${product['pur_rate'] ?? 'No Pur rate'}"),
+                              Text(
+                                  "Sale rate: ${product['sale_rate'] ?? 'No Sale rate'}"),
                               Text("Mrp rate: ${product['mrp'] ?? 'No Mrp'}"),
                             ],
                           ),
@@ -95,7 +97,8 @@ class _AllProductsState extends State<AllProducts> {
                                 bool? result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => EditProduct(product: product),
+                                    builder: (context) =>
+                                        EditProduct(product: product),
                                   ),
                                 );
                                 if (result == true) {

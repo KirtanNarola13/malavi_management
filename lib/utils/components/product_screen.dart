@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -15,17 +15,15 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  // final _formKey = GlobalKey<FormState>();
   File? _image;
   final picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _purchaseRateController = TextEditingController();
-  final _saleRateController = TextEditingController();
-  final _mrpController = TextEditingController();
   final _qtyController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  String? _units;
+  String? _category;
+  String? _company;
+
   bool _isLoading = false;
   bool _isUploadingImage = false;
 
@@ -80,30 +78,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
         final imageUrl = await imageRef.getDownloadURL();
 
         // Save data to Firestore
-        await FirebaseFirestore.instance.collection('products').add(
-          {
-            'title': _titleController.text,
-            'pur_rate': _purchaseRateController.text,
-            'sale_rate': _saleRateController.text,
-            'mrp': _mrpController.text,
-            'qty': _qtyController.text,
-            'category': _categoryController.text,
-            'description': _descriptionController.text,
-            'image_url': imageUrl,
-          },
-        );
+        await FirebaseFirestore.instance.collection('products').add({
+          'title': _titleController.text,
+          'units': _units,
+          'category': _category,
+          'company': _company,
+          'image_url': imageUrl,
+        });
 
         // Clear form
         _formKey.currentState!.reset();
         setState(() {
           _image = null;
           _isLoading = false;
-          _categoryController.clear();
-          _descriptionController.clear();
-          _purchaseRateController.clear();
-          _saleRateController.clear();
-          _mrpController.clear();
-          _qtyController.clear();
           _titleController.clear();
         });
 
@@ -142,14 +129,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Sarkar Infotech Pvt. Ltd.',
+          'Malavi Managment',
         ),
-        backgroundColor: Colors.yellow[700],
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(
-          20,
-        ),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -163,11 +148,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(
-                    Colors.yellow[700]!,
-                  ),
-                ),
                 onPressed: _isUploadingImage ? null : _pickImage,
                 child: const Text(
                   'Upload Image',
@@ -176,41 +156,83 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               _buildTextFormField(_titleController, 'Title', 'Enter title'),
-              const SizedBox(
-                height: 10,
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _units,
+                onChanged: (value) => setState(() => _units = value),
+                items: ['psc']
+                    .map((unit) => DropdownMenuItem<String>(
+                          value: unit,
+                          child: Text(unit),
+                        ))
+                    .toList(),
+                decoration: InputDecoration(
+                  labelText: 'Units',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                validator: (value) => value == null ? 'Select units' : null,
               ),
-              _buildTextFormField(
-                  _purchaseRateController, 'Pur rate', 'Enter purchase rate'),
-              const SizedBox(
-                height: 10,
+              const SizedBox(height: 10),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('category')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return const CircularProgressIndicator();
+                  return DropdownButtonFormField<String>(
+                    value: _category,
+                    onChanged: (value) => setState(() => _category = value),
+                    items: snapshot.data!.docs.map((doc) {
+                      return DropdownMenuItem<String>(
+                        value: doc.id,
+                        child: Text(doc['name']),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    validator: (value) =>
+                        value == null ? 'Select category' : null,
+                  );
+                },
               ),
-              _buildTextFormField(
-                  _saleRateController, 'Sale rate', 'Enter sale rate'),
-              const SizedBox(
-                height: 10,
+              const SizedBox(height: 10),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('company')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return const CircularProgressIndicator();
+                  return DropdownButtonFormField<String>(
+                    value: _company,
+                    onChanged: (value) => setState(() => _company = value),
+                    items: snapshot.data!.docs.map((doc) {
+                      return DropdownMenuItem<String>(
+                        value: doc.id,
+                        child: Text(doc['name']),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Company',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    validator: (value) =>
+                        value == null ? 'Select company' : null,
+                  );
+                },
               ),
-              _buildTextFormField(_mrpController, 'Mrp', 'Enter mrp'),
-              const SizedBox(
-                height: 10,
-              ),
-              _buildTextFormField(_qtyController, 'Qty', 'Enter qty'),
-              const SizedBox(
-                height: 10,
-              ),
-              _buildTextFormField(
-                  _categoryController, 'Category', 'Enter category'),
-              const SizedBox(
-                height: 10,
-              ),
-              _buildTextFormField(
-                  _descriptionController, 'Description', 'Enter description'),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
@@ -243,31 +265,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(
-            10,
-          ),
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
       validator: (value) => value!.isEmpty ? validationMsg : null,
     );
   }
-}
-
-void main() {
-  runApp(
-    MaterialApp(
-      theme: ThemeData(
-        primaryColor: Colors.yellow[700],
-        hintColor: Colors.yellow[700],
-        buttonTheme: ButtonThemeData(
-          buttonColor: Colors.yellow[700],
-          textTheme: ButtonTextTheme.primary,
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.yellow[700],
-        ),
-      ),
-      home: const AddProductScreen(),
-    ),
-  );
 }
