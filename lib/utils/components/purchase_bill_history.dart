@@ -9,7 +9,57 @@ class PurchaseBillHistory extends StatefulWidget {
 }
 
 class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
+  final TextEditingController searchController = TextEditingController();
+  List _allResult = [];
+  List _resutlList = [];
+  getAllProducts() async {
+    var data = await FirebaseFirestore.instance.collection('products').get();
+    setState(() {
+      _allResult = data.docs;
+    });
+    searchResultList();
+  }
+
   @override
+  void initState() {
+    searchController.addListener(_onSearchChanged);
+    super.initState();
+  }
+
+  _onSearchChanged() {
+    searchResultList();
+  }
+
+  searchResultList() {
+    var showResult = [];
+    if (searchController.text != "") {
+      for (var productSnapshot in _allResult) {
+        var name = productSnapshot['name'].toString().toLowerCase();
+        if (name.contains(searchController.text.toLowerCase())) {
+          showResult.add(productSnapshot);
+        }
+      }
+    } else {
+      showResult = List.from(_allResult);
+    }
+
+    setState(() {
+      _resutlList = showResult;
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    getAllProducts();
+    super.didChangeDependencies();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

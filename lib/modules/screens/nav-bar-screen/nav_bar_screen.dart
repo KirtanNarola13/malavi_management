@@ -4,7 +4,6 @@ import 'package:malavi_management/modules/screens/product-screen/all_products.da
 
 import '../bill-screen/bill_screen.dart';
 import '../home-screen/home_screen.dart';
-import '../../../utils/components/product_screen.dart';
 import '../profile-screen/profile_screen.dart';
 
 class NavBarScreen extends StatefulWidget {
@@ -48,7 +47,6 @@ class _NavBarScreenState extends State<NavBarScreen> {
               icon: Icon(Icons.shopping_bag), label: 'Product'),
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet), label: 'Bill'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
