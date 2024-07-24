@@ -13,7 +13,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
   List _allResult = [];
   List _resutlList = [];
   getAllProducts() async {
-    var data = await FirebaseFirestore.instance.collection('products').get();
+    var data =
+        await FirebaseFirestore.instance.collection('pendingBills').get();
     setState(() {
       _allResult = data.docs;
     });
@@ -34,7 +35,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
     var showResult = [];
     if (searchController.text != "") {
       for (var productSnapshot in _allResult) {
-        var name = productSnapshot['name'].toString().toLowerCase();
+        var name = productSnapshot['partyName'].toString().toLowerCase();
         if (name.contains(searchController.text.toLowerCase())) {
           showResult.add(productSnapshot);
         }
@@ -61,6 +62,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
   }
 
   Widget build(BuildContext context) {
+    double height = MediaQuery.sizeOf(context).height;
+    double width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bills List'),
@@ -73,65 +76,114 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
 
           final bills = snapshot.data!.docs;
 
-          return ListView.builder(
-            itemCount: bills.length,
-            itemBuilder: (context, index) {
-              final bill = bills[index];
-              final Timestamp timestamp = bill['date'];
-              final DateTime billDate = timestamp.toDate();
-              final int daysAgo = DateTime.now().difference(billDate).inDays;
-
-              return Card(
-                margin:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                color: Colors.yellow.shade200.withOpacity(0.8),
-                child: Theme(
-                  data: ThemeData().copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    title: Text('Party: ${bill['partyName']}'),
-                    subtitle: Text('Product: ${bill['productName']}'),
-                    trailing: Text('$daysAgo days ago'),
-                    children: [
-                      ListTile(
-                        title: const Text('Quantity'),
-                        subtitle: Text('${bill['quantity']}'),
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 10),
+                    margin: EdgeInsets.only(bottom: 10),
+                    height: height / 16,
+                    width: width / 1.2,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(
+                        color: Colors.grey.shade700,
+                        width: 1,
                       ),
-                      ListTile(
-                        title: const Text('MRP'),
-                        subtitle: Text(double.parse(bill['mrp'].toString())
-                            .toStringAsFixed(2)),
-                      ),
-                      ListTile(
-                        title: const Text('Purchase Rate'),
-                        subtitle: Text(
-                            double.parse(bill['purchaseRate'].toString())
-                                .toStringAsFixed(2)),
-                      ),
-                      ListTile(
-                        title: const Text('Total Amount'),
-                        subtitle: Text(
-                            double.parse(bill['totalAmount'].toString())
-                                .toStringAsFixed(2)),
-                      ),
-                      ListTile(
-                        title: const Text('Margin'),
-                        subtitle: Text(
-                            '${double.parse(bill['margin'].toString()).toStringAsFixed(2)}%'),
-                      ),
-                      ListTile(
-                        title: const Text('Date'),
-                        subtitle: Text(
-                            '${billDate.day} - ${billDate.month} - ${billDate.year}'),
-                      ),
-                      ListTile(
-                        title: const Text('Time'),
-                        subtitle: Text('${billDate.hour} : ${billDate.minute}'),
-                      ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.search_outlined,
+                          color: Colors.grey.shade700,
+                        ),
+                        SizedBox(width: width / 35),
+                        Container(
+                          alignment: Alignment.center,
+                          width: width / 1.5,
+                          child: TextFormField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search product',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              );
-            },
+                SizedBox(
+                  height: height / 1,
+                  child: ListView.builder(
+                    itemCount: _resutlList.length,
+                    itemBuilder: (context, index) {
+                      final bill = _resutlList[index];
+                      final Timestamp timestamp = bill['date'];
+                      final DateTime billDate = timestamp.toDate();
+                      final int daysAgo =
+                          DateTime.now().difference(billDate).inDays;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        color: Colors.yellow.shade200.withOpacity(0.8),
+                        child: Theme(
+                          data: ThemeData()
+                              .copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            title: Text('Party: ${bill['partyName']}'),
+                            subtitle: Text('Product: ${bill['productName']}'),
+                            trailing: Text('$daysAgo days ago'),
+                            children: [
+                              ListTile(
+                                title: const Text('Quantity'),
+                                subtitle: Text('${bill['quantity']}'),
+                              ),
+                              ListTile(
+                                title: const Text('MRP'),
+                                subtitle: Text(
+                                    double.parse(bill['mrp'].toString())
+                                        .toStringAsFixed(2)),
+                              ),
+                              ListTile(
+                                title: const Text('Purchase Rate'),
+                                subtitle: Text(double.parse(
+                                        bill['purchaseRate'].toString())
+                                    .toStringAsFixed(2)),
+                              ),
+                              ListTile(
+                                title: const Text('Total Amount'),
+                                subtitle: Text(
+                                    double.parse(bill['totalAmount'].toString())
+                                        .toStringAsFixed(2)),
+                              ),
+                              ListTile(
+                                title: const Text('Margin'),
+                                subtitle: Text(
+                                    '${double.parse(bill['margin'].toString()).toStringAsFixed(2)}%'),
+                              ),
+                              ListTile(
+                                title: const Text('Date'),
+                                subtitle: Text(
+                                    '${billDate.day} - ${billDate.month} - ${billDate.year}'),
+                              ),
+                              ListTile(
+                                title: const Text('Time'),
+                                subtitle: Text(
+                                    '${billDate.hour} : ${billDate.minute}'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),

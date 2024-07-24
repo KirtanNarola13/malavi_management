@@ -30,8 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(30),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 30,
-          crossAxisSpacing: 30,
+          mainAxisSpacing: 40,
+          crossAxisSpacing: 40,
         ),
         children: [
           FadeInUp(

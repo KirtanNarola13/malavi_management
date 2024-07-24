@@ -11,19 +11,13 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
   String? selectedParty;
   int? quantity;
   double? mrp;
-  double? purchaseRate;
+  double? saleRate;
   double? margin;
   double? totalAmount;
 
   final marginController = TextEditingController();
-  final purchaseRateController = TextEditingController();
+  final saleRateController = TextEditingController();
   final totalAmountController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    marginController.text = '1.1';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +39,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
-                  return DropdownButton<String>(
-                    hint: const Text('Select Purchase Party'),
+                  return DropdownButtonFormField<String>(
                     value: selectedParty,
                     items: snapshot.data?.docs.map((doc) {
                       return DropdownMenuItem<String>(
@@ -54,6 +47,12 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         child: Text(doc['account_name']),
                       );
                     }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Purchase party account',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     onChanged: (value) {
                       setState(() {
                         selectedParty = value!;
@@ -61,6 +60,10 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     },
                   );
                 },
+              ),
+
+              const SizedBox(
+                height: 10,
               ),
               // Dropdown to select product
               StreamBuilder<QuerySnapshot>(
@@ -71,13 +74,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
-                  return DropdownButton<String>(
-                    hint: const Text(
-                      'Select Product',
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
+                  return DropdownButtonFormField<String>(
                     value: selectedProduct,
                     items: snapshot.data?.docs.map((doc) {
                       return DropdownMenuItem<String>(
@@ -85,6 +82,12 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         child: Text(doc['title']),
                       );
                     }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Select product',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     onChanged: (value) {
                       setState(() {
                         selectedProduct = value!;
@@ -94,7 +97,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                 },
               ),
               const SizedBox(
-                height: 30,
+                height: 10,
               ),
               TextField(
                 decoration: const InputDecoration(
@@ -170,7 +173,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
               ),
 
               TextField(
-                controller: purchaseRateController,
+                controller: saleRateController,
                 decoration: const InputDecoration(
                   labelText: 'Purchase Rate',
                   border: OutlineInputBorder(
@@ -185,7 +188,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   setState(() {
-                    purchaseRate = double.tryParse(value) ?? 0.0;
+                    saleRate = double.tryParse(value) ?? 0.0;
                     calculateMargin();
                     calculateTotalAmount();
                   });
@@ -233,26 +236,26 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
   void calculatePurchaseRate() {
     if (mrp != null && margin != null && margin! > 0) {
       setState(() {
-        purchaseRate = mrp! / (1 + (margin! / 100));
-        purchaseRateController.text = purchaseRate!.toStringAsFixed(2);
+        saleRate = mrp! / (1 + (margin! / 100));
+        saleRateController.text = saleRate!.toStringAsFixed(2);
         calculateTotalAmount(); // Recalculate total amount whenever purchase rate changes
       });
     }
   }
 
   void calculateMargin() {
-    if (mrp != null && purchaseRate != null && purchaseRate! > 0) {
+    if (mrp != null && saleRate != null && saleRate! > 0) {
       setState(() {
-        margin = ((mrp! - purchaseRate!) / mrp!) * 100;
+        margin = ((mrp! - saleRate!) / mrp!) * 100;
         marginController.text = margin!.toStringAsFixed(2);
       });
     }
   }
 
   void calculateTotalAmount() {
-    if (quantity != null && purchaseRate != null) {
+    if (quantity != null && saleRate != null) {
       setState(() {
-        totalAmount = quantity! * purchaseRate!;
+        totalAmount = quantity! * saleRate!;
         totalAmountController.text = totalAmount!.toStringAsFixed(2);
       });
     }
@@ -264,11 +267,11 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
       selectedParty = null;
       quantity = null;
       mrp = null;
-      purchaseRate = null;
+      saleRate = null;
       margin = null;
       totalAmount = null;
       marginController.clear();
-      purchaseRateController.clear();
+      saleRateController.clear();
       totalAmountController.clear();
     });
   }
@@ -278,7 +281,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         selectedParty != null &&
         quantity != null &&
         mrp != null &&
-        purchaseRate != null &&
+        saleRate != null &&
         totalAmount != null) {
       // Fetch party and product details
       final partyDoc = await FirebaseFirestore.instance
@@ -297,7 +300,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         'productName': productDoc['title'],
         'quantity': quantity,
         'mrp': mrp,
-        'purchaseRate': purchaseRate,
+        'saleRate': saleRate,
         'totalAmount': totalAmount,
         'margin': margin,
         'date': Timestamp.now(),

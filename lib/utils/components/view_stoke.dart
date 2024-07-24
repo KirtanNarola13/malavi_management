@@ -9,8 +9,62 @@ class ViewStock extends StatefulWidget {
 }
 
 class _ViewStockState extends State<ViewStock> {
+  final TextEditingController searchController = TextEditingController();
+  List _allResult = [];
+  List _resutlList = [];
+  getAllProducts() async {
+    var data =
+        await FirebaseFirestore.instance.collection('productStock').get();
+    setState(() {
+      _allResult = data.docs;
+    });
+    searchResultList();
+  }
+
+  @override
+  void initState() {
+    searchController.addListener(_onSearchChanged);
+    super.initState();
+  }
+
+  _onSearchChanged() {
+    searchResultList();
+  }
+
+  searchResultList() {
+    var showResult = [];
+    if (searchController.text != "") {
+      for (var productSnapshot in _allResult) {
+        var name = productSnapshot['title'].toString().toLowerCase();
+        if (name.contains(searchController.text.toLowerCase())) {
+          showResult.add(productSnapshot);
+        }
+      }
+    } else {
+      showResult = List.from(_allResult);
+    }
+
+    setState(() {
+      _resutlList = showResult;
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    getAllProducts();
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.sizeOf(context).height;
+    double width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Stock'),
@@ -25,94 +79,143 @@ class _ViewStockState extends State<ViewStock> {
 
           var productDocs = snapshot.data!.docs;
 
-          return ListView.builder(
-            itemCount: productDocs.length,
-            itemBuilder: (context, index) {
-              var productDoc = productDocs[index];
-              var productName = productDoc.id;
-              var productData = productDoc.data() as Map<String, dynamic>;
-              var imgUrl = productData['image_url'];
-
-              return Card(
-                margin: EdgeInsets.all(10),
-                color: Colors.yellow.shade200.withOpacity(0.5),
-                child: Theme(
-                  data: ThemeData().copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    leading: Container(
-                      height: 50,
-                      width: 50,
-                      child: Image.network(
-                        imgUrl,
-                        fit: BoxFit.cover,
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 10),
+                    margin: EdgeInsets.only(bottom: 10),
+                    height: height / 16,
+                    width: width / 1.2,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(
+                        color: Colors.grey.shade700,
+                        width: 1,
                       ),
                     ),
-                    title: Text(productName),
-                    subtitle: FutureBuilder<QuerySnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('productStock')
-                          .doc(productName)
-                          .collection('purchaseHistory')
-                          .get(),
-                      builder: (context, historySnapshot) {
-                        if (!historySnapshot.hasData) {
-                          return const Text('Loading...');
-                        }
-
-                        var historyDocs = historySnapshot.data!.docs;
-                        var totalQuantity = historyDocs.fold<int>(
-                          0,
-                          (previousValue, element) {
-                            var historyData =
-                                element.data() as Map<String, dynamic>;
-                            return previousValue +
-                                (historyData['quantity'] as int);
-                          },
-                        );
-
-                        return Text('Total Quantity: $totalQuantity');
-                      },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.search_outlined,
+                          color: Colors.grey.shade700,
+                        ),
+                        SizedBox(width: width / 35),
+                        Container(
+                          alignment: Alignment.center,
+                          width: width / 1.5,
+                          child: TextFormField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search product',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    children: [
-                      FutureBuilder<QuerySnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('productStock')
-                            .doc(productName)
-                            .collection('purchaseHistory')
-                            .get(),
-                        builder: (context, historySnapshot) {
-                          if (!historySnapshot.hasData) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-
-                          var historyDocs = historySnapshot.data!.docs;
-
-                          return Column(
-                            children: historyDocs.map((doc) {
-                              var historyData =
-                                  doc.data() as Map<String, dynamic>;
-                              var partyName = historyData['partyName'];
-                              var quantity = historyData['quantity'];
-                              var totalAmount = historyData['totalAmount'];
-                              var date = historyData['date'] as Timestamp;
-                              var formattedDate =
-                                  date.toDate().toLocal().toString();
-
-                              return ListTile(
-                                title: Text('Party: $partyName'),
-                                subtitle: Text(
-                                    'Quantity: $quantity\nTotal Amount: $totalAmount\nDate: $formattedDate'),
-                              );
-                            }).toList(),
-                          );
-                        },
-                      ),
-                    ],
                   ),
                 ),
-              );
-            },
+                SizedBox(
+                  height: height / 1,
+                  child: ListView.builder(
+                    itemCount: _resutlList.length,
+                    itemBuilder: (context, index) {
+                      var productDoc = _resutlList[index];
+                      var productName = productDoc.id;
+                      var productData =
+                          productDoc.data() as Map<String, dynamic>;
+                      var imgUrl = productData['image_url'];
+
+                      return Card(
+                        margin: EdgeInsets.all(10),
+                        color: Colors.yellow.shade200.withOpacity(0.5),
+                        child: Theme(
+                          data: ThemeData()
+                              .copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            leading: Container(
+                              height: 50,
+                              width: 50,
+                              child: Image.network(
+                                imgUrl,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            title: Text(productName),
+                            subtitle: FutureBuilder<QuerySnapshot>(
+                              future: FirebaseFirestore.instance
+                                  .collection('productStock')
+                                  .doc(productName)
+                                  .collection('purchaseHistory')
+                                  .get(),
+                              builder: (context, historySnapshot) {
+                                if (!historySnapshot.hasData) {
+                                  return const Text('Loading...');
+                                }
+
+                                var historyDocs = historySnapshot.data!.docs;
+                                var totalQuantity = historyDocs.fold<int>(
+                                  0,
+                                  (previousValue, element) {
+                                    var historyData =
+                                        element.data() as Map<String, dynamic>;
+                                    return previousValue +
+                                        (historyData['quantity'] as int);
+                                  },
+                                );
+
+                                return Text('Total Quantity: $totalQuantity');
+                              },
+                            ),
+                            children: [
+                              FutureBuilder<QuerySnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('productStock')
+                                    .doc(productName)
+                                    .collection('purchaseHistory')
+                                    .get(),
+                                builder: (context, historySnapshot) {
+                                  if (!historySnapshot.hasData) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  var historyDocs = historySnapshot.data!.docs;
+
+                                  return Column(
+                                    children: historyDocs.map((doc) {
+                                      var historyData =
+                                          doc.data() as Map<String, dynamic>;
+                                      var partyName = historyData['partyName'];
+                                      var quantity = historyData['quantity'];
+                                      var totalAmount =
+                                          historyData['totalAmount'];
+                                      var date =
+                                          historyData['date'] as Timestamp;
+                                      var formattedDate =
+                                          date.toDate().toLocal().toString();
+
+                                      return ListTile(
+                                        title: Text('Party: $partyName'),
+                                        subtitle: Text(
+                                            'Quantity: $quantity\nTotal Amount: $totalAmount\nDate: $formattedDate'),
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),

@@ -53,7 +53,7 @@ class _BillScreenState extends State<BillScreen> {
                           return ListTile(
                             title: Text('Product: ${item['productName']}'),
                             subtitle: Text(
-                                'Quantity: ${item['quantity']}, Net Amount: ${item['net amount']}'),
+                                'Quantity: ${item['quantity']}, Net Amount: ${item['netAmount']}'),
                           );
                         }).toList(),
                       ),
@@ -90,6 +90,20 @@ class _BillScreenState extends State<BillScreen> {
 
   Future<pw.Document> generatePdf(QueryDocumentSnapshot bill) async {
     final pdf = pw.Document();
+    String formatedAmount;
+    pw.Widget _buildCell(String text, {bool isHeader = false}) {
+      return pw.Padding(
+        padding: const pw.EdgeInsets.all(8.0),
+        child: pw.Text(
+          text,
+          textAlign: pw.TextAlign.center,
+          style: pw.TextStyle(
+            fontSize: isHeader ? 16 : 14,
+            fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+          ),
+        ),
+      );
+    }
 
     pdf.addPage(
       pw.Page(
@@ -97,65 +111,61 @@ class _BillScreenState extends State<BillScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('JEWELLERY INVOICE', style: pw.TextStyle(fontSize: 24)),
+              pw.Text('PURVA SALES', style: pw.TextStyle(fontSize: 24)),
               pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  pw.Text('Invoice number: ${bill['billNumber']}',
+                      style: pw.TextStyle(fontSize: 18)),
+                  pw.Text('Date of issue: ${bill['date']}',
+                      style: pw.TextStyle(fontSize: 18)),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table(
+                border: pw.TableBorder.all(), // Optional: Adds border to table
+                children: [
+                  // Table header
+                  pw.TableRow(
                     children: [
-                      pw.Text('Invoice number: ',
-                          style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Date of issue: ${bill['date']}',
-                          style: pw.TextStyle(fontSize: 18)),
+                      _buildCell('Description', isHeader: true),
+                      _buildCell('Quantity', isHeader: true),
+                      _buildCell('Price/Unit', isHeader: true),
+                      _buildCell('Amount', isHeader: true),
                     ],
                   ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  // Table rows
+                  ...((bill['items'] as List).map((item) {
+                    String formattedAmount =
+                        item['netAmount'].toStringAsFixed(2);
+                    return pw.TableRow(
+                      children: [
+                        _buildCell(item['productName']),
+                        _buildCell(item['quantity'].toString()),
+                        _buildCell(item['discount']
+                            .toString()), // Ensure this key exists in your data
+                        _buildCell(formattedAmount),
+                      ],
+                    );
+                  }).toList()),
+                  pw.TableRow(
                     children: [
-                      pw.Text('Billed to: ', style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Billed by: ', style: pw.TextStyle(fontSize: 18)),
+                      _buildCell(''),
+                      _buildCell(''),
+                      _buildCell('Total'),
+                      _buildCell('${bill['grandTotal'].toStringAsFixed(2)}'),
                     ],
                   ),
                 ],
               ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                headers: ['Description', 'Quantity', 'Price/Unit', 'Amount'],
-                data: (bill['items'] as List).map((item) {
-                  return [
-                    item['productName'],
-                    item['quantity'],
-                    item['price/unit'], // Ensure this key exists in your data
-                    item['net amount'],
-                  ];
-                }).toList(),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.end,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Subtotal: ', style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Discount: ', style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Tax rate: ', style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Tax: ', style: pw.TextStyle(fontSize: 18)),
-                      pw.Text('Invoice total: ${bill['grandTotal']}',
-                          style: pw.TextStyle(fontSize: 18)),
-                    ],
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text('Terms & Conditions', style: pw.TextStyle(fontSize: 18)),
             ],
           );
         },
       ),
     );
+
+// Helper function to build table cells with centered text
 
     return pdf;
   }
