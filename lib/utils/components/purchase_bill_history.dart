@@ -10,8 +10,10 @@ class PurchaseBillHistory extends StatefulWidget {
 
 class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
   final TextEditingController searchController = TextEditingController();
+
   List _allResult = [];
   List _resutlList = [];
+
   getAllProducts() async {
     var data =
         await FirebaseFirestore.instance.collection('pendingBills').get();

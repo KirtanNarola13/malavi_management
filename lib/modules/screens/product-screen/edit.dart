@@ -41,23 +41,25 @@ class _EditProductState extends State<EditProduct> {
 
   void _updateProduct() async {
     try {
-      await _firestore.collection('products').doc(widget.product['id']).update({
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'category': _categoryController.text,
-        'pur_rate': double.parse(
-          _purRateController.text,
-        ),
-        'sale_rate': double.parse(
-          _saleRateController.text,
-        ),
-        'mrp': double.parse(
-          _mrpController.text,
-        ),
-        'qty': int.parse(
-          _qtyController.text,
-        ),
-      });
+      await _firestore.collection('products').doc(widget.product['id']).update(
+        {
+          'title': _titleController.text,
+          'description': _descriptionController.text,
+          'category': _categoryController.text,
+          'pur_rate': double.parse(
+            _purRateController.text,
+          ),
+          'sale_rate': double.parse(
+            _saleRateController.text,
+          ),
+          'mrp': double.parse(
+            _mrpController.text,
+          ),
+          'qty': int.parse(
+            _qtyController.text,
+          ),
+        },
+      );
       Navigator.pop(context, true); // Return true to indicate success
     } catch (e) {
       if (kDebugMode) {

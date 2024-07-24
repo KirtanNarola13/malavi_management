@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:malavi_management/utils/helpers/auth_helper.dart';
 import 'package:malavi_management/utils/model/signup_model.dart';
@@ -120,10 +121,12 @@ class SignupPage extends StatelessWidget {
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => NavBarScreen()),
+                                  builder: (context) => const NavBarScreen()),
                               (Route<dynamic> route) => false,
                             );
-                            print('User is valid');
+                            if (kDebugMode) {
+                              print('User is valid');
+                            }
                           }
                         },
                         color: Colors.greenAccent,
@@ -138,18 +141,19 @@ class SignupPage extends StatelessWidget {
                       ),
                     )),
                 FadeInUp(
-                    duration: const Duration(milliseconds: 1600),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text("Already have an account?"),
-                        Text(
-                          " Login",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 18),
-                        ),
-                      ],
-                    )),
+                  duration: const Duration(milliseconds: 1600),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Already have an account?"),
+                      Text(
+                        " Login",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -169,7 +173,10 @@ class SignupPage extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w400, color: Colors.black87),
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: Colors.black87,
+          ),
         ),
         const SizedBox(
           height: 5,
@@ -178,12 +185,20 @@ class SignupPage extends StatelessWidget {
           controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 0,
+              horizontal: 10,
+            ),
             enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey.shade400)),
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+              ),
+            ),
             border: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey.shade400)),
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+              ),
+            ),
           ),
           validator: validator,
         ),

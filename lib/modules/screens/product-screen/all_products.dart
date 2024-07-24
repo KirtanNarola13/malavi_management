@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit.dart';
 
 class AllProducts extends StatefulWidget {
-  const AllProducts({Key? key}) : super(key: key);
+  const AllProducts({super.key});
 
   @override
   State<AllProducts> createState() => _AllProductsState();
@@ -16,11 +17,11 @@ class _AllProductsState extends State<AllProducts> {
     QuerySnapshot querySnapshot = await _firestore.collection('products').get();
 
     List<Map<String, dynamic>> products = [];
-    querySnapshot.docs.forEach((doc) {
+    for (var doc in querySnapshot.docs) {
       Map<String, dynamic> productData = doc.data() as Map<String, dynamic>;
       productData['id'] = doc.id; // Add document ID to the map
       products.add(productData);
-    });
+    }
 
     return products;
   }
@@ -30,7 +31,9 @@ class _AllProductsState extends State<AllProducts> {
       await _firestore.collection('products').doc(productId).delete();
       setState(() {}); // Refresh the list after deleting
     } catch (e) {
-      print("Error deleting product: $e");
+      if (kDebugMode) {
+        print("Error deleting product: $e");
+      }
     }
   }
 
@@ -77,9 +80,11 @@ class _AllProductsState extends State<AllProducts> {
                       children: [
                         ListTile(
                           title: Text(
-                              "Company : ${product['company'] ?? 'No company'}"),
-                          subtitle:
-                              Text("Unit : ${product['units'] ?? 'No units'}"),
+                            "Company : ${product['company'] ?? 'No company'}",
+                          ),
+                          subtitle: Text(
+                            "Unit : ${product['units'] ?? 'No units'}",
+                          ),
                         ),
                         ButtonBar(
                           children: [
@@ -115,9 +120,12 @@ class _AllProductsState extends State<AllProducts> {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text("Delete Product"),
+                                    title: const Text(
+                                      "Delete Product",
+                                    ),
                                     content: const Text(
-                                        "Are you sure you want to delete this product?"),
+                                      "Are you sure you want to delete this product?",
+                                    ),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
@@ -133,7 +141,9 @@ class _AllProductsState extends State<AllProducts> {
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
-                                          _deleteProduct(product['id']);
+                                          _deleteProduct(
+                                            product['id'],
+                                          );
                                         },
                                         child: const Text(
                                           "Delete",

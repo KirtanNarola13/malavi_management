@@ -7,8 +7,10 @@ import 'modules/screens/login-screen/view/login.dart';
 import 'modules/screens/signup-screen/view/signup.dart';
 
 Future<void> main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,

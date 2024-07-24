@@ -19,7 +19,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _qtyController = TextEditingController();
   String? _units;
   String? _category;
   String? _company;
@@ -28,7 +27,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _isUploadingImage = false;
 
   Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (pickedFile != null) {
       setState(() {
         _isUploadingImage = true;
@@ -78,13 +79,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
         final imageUrl = await imageRef.getDownloadURL();
 
         // Save data to Firestore
-        await FirebaseFirestore.instance.collection('products').add({
-          'title': _titleController.text,
-          'units': _units,
-          'category': _category,
-          'company': _company,
-          'image_url': imageUrl,
-        });
+        await FirebaseFirestore.instance.collection('products').add(
+          {
+            'title': _titleController.text,
+            'units': _units,
+            'category': _category,
+            'company': _company,
+            'image_url': imageUrl,
+          },
+        );
 
         // Clear form
         _formKey.currentState!.reset();

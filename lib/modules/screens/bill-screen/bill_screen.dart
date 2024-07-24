@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:share/share.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -40,13 +39,17 @@ class _BillScreenState extends State<BillScreen> {
               final items = bill['items'] as List;
 
               return Card(
-                margin: EdgeInsets.all(15),
+                margin: const EdgeInsets.all(15),
                 color: Colors.yellow.shade200.withOpacity(0.8),
                 child: Theme(
                   data: ThemeData().copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
-                    title: Text(bill['party_name']),
-                    subtitle: Text(bill['date']),
+                    title: Text(
+                      bill['party_name'],
+                    ),
+                    subtitle: Text(
+                      bill['date'],
+                    ),
                     children: [
                       Column(
                         children: items.map<Widget>((item) {
@@ -90,10 +93,11 @@ class _BillScreenState extends State<BillScreen> {
 
   Future<pw.Document> generatePdf(QueryDocumentSnapshot bill) async {
     final pdf = pw.Document();
-    String formatedAmount;
-    pw.Widget _buildCell(String text, {bool isHeader = false}) {
+    pw.Widget buildCell(String text, {bool isHeader = false}) {
       return pw.Padding(
-        padding: const pw.EdgeInsets.all(8.0),
+        padding: const pw.EdgeInsets.all(
+          8.0,
+        ),
         child: pw.Text(
           text,
           textAlign: pw.TextAlign.center,
@@ -111,50 +115,57 @@ class _BillScreenState extends State<BillScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('PURVA SALES', style: pw.TextStyle(fontSize: 24)),
+              pw.Text('PURVA SALES', style: const pw.TextStyle(fontSize: 24)),
               pw.SizedBox(height: 20),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text('Invoice number: ${bill['billNumber']}',
-                      style: pw.TextStyle(fontSize: 18)),
+                      style: const pw.TextStyle(fontSize: 18)),
                   pw.Text('Date of issue: ${bill['date']}',
-                      style: pw.TextStyle(fontSize: 18)),
+                      style: const pw.TextStyle(fontSize: 18)),
                 ],
               ),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(
+                height: 20,
+              ),
               pw.Table(
                 border: pw.TableBorder.all(), // Optional: Adds border to table
                 children: [
                   // Table header
                   pw.TableRow(
                     children: [
-                      _buildCell('Description', isHeader: true),
-                      _buildCell('Quantity', isHeader: true),
-                      _buildCell('Price/Unit', isHeader: true),
-                      _buildCell('Amount', isHeader: true),
+                      buildCell('Description', isHeader: true),
+                      buildCell('Quantity', isHeader: true),
+                      buildCell('Price/Unit', isHeader: true),
+                      buildCell('Amount', isHeader: true),
                     ],
                   ),
                   // Table rows
                   ...((bill['items'] as List).map((item) {
-                    String formattedAmount =
-                        item['netAmount'].toStringAsFixed(2);
+                    String formattedAmount = item['netAmount'].toStringAsFixed(
+                      2,
+                    );
                     return pw.TableRow(
                       children: [
-                        _buildCell(item['productName']),
-                        _buildCell(item['quantity'].toString()),
-                        _buildCell(item['discount']
+                        buildCell(item['productName']),
+                        buildCell(item['quantity'].toString()),
+                        buildCell(item['discount']
                             .toString()), // Ensure this key exists in your data
-                        _buildCell(formattedAmount),
+                        buildCell(formattedAmount),
                       ],
                     );
                   }).toList()),
                   pw.TableRow(
                     children: [
-                      _buildCell(''),
-                      _buildCell(''),
-                      _buildCell('Total'),
-                      _buildCell('${bill['grandTotal'].toStringAsFixed(2)}'),
+                      buildCell(''),
+                      buildCell(''),
+                      buildCell('Total'),
+                      buildCell(
+                        '${bill['grandTotal'].toStringAsFixed(
+                          2,
+                        )}',
+                      ),
                     ],
                   ),
                 ],

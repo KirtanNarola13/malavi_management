@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:malavi_management/utils/components/add_account.dart';
 import 'package:malavi_management/utils/components/add_category.dart';
 import 'package:malavi_management/utils/components/product_screen.dart';
-import 'package:malavi_management/modules/screens/product-screen/all_products.dart';
 import 'package:malavi_management/utils/components/purchase_bill_history.dart';
 import 'package:malavi_management/utils/components/purchase_bill_screen.dart';
 import 'package:malavi_management/utils/components/sale_bill.dart';
@@ -23,11 +22,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text(
+          'Home',
+        ),
       ),
       body: GridView(
         shrinkWrap: true,
-        padding: const EdgeInsets.all(30),
+        padding: const EdgeInsets.all(
+          30,
+        ),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 40,
@@ -43,11 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddProductScreen(),
+                    builder: (context) => const AddProductScreen(),
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(
+                30,
+              ),
               splashColor: Colors.yellow,
               child: Container(
                 alignment: Alignment.center,
@@ -72,9 +77,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         "Add Products",
                         style: TextStyle(
-                            fontSize: 18,
-                            letterSpacing: 1,
-                            fontStyle: FontStyle.italic),
+                          fontSize: 18,
+                          letterSpacing: 1,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                       SizedBox(
                         height: 1,
@@ -94,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ViewStock(),
+                    builder: (context) => const ViewStock(),
                   ),
                 );
               },
@@ -103,9 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.yellow.withOpacity(0.5),
+                  color: Colors.yellow.withOpacity(
+                    0.5,
+                  ),
                   borderRadius: const BorderRadius.all(
-                    Radius.circular(30),
+                    Radius.circular(
+                      30,
+                    ),
                   ),
                 ),
                 child: const Center(
@@ -145,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddAccount(),
+                    builder: (context) => const AddAccount(),
                   ),
                 );
               },
@@ -196,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddCompany(),
+                    builder: (context) => const AddCompany(),
                   ),
                 );
               },
@@ -247,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddCategory(),
+                    builder: (context) => const AddCategory(),
                   ),
                 );
               },
@@ -349,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PurchaseBillHistory(),
+                    builder: (context) => const PurchaseBillHistory(),
                   ),
                 );
               },

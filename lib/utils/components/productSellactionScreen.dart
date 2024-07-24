@@ -4,19 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class SelectProductScreen extends StatelessWidget {
   final Function(String, double, double, double) onProductSelected;
 
-  SelectProductScreen({required this.onProductSelected});
+  const SelectProductScreen({super.key, required this.onProductSelected});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Product'),
+        title: const Text('Select Product'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance.collection('productStock').snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return CircularProgressIndicator();
+          if (!snapshot.hasData) return const CircularProgressIndicator();
           return ListView(
             children: snapshot.data!.docs.map((doc) {
               return ListTile(

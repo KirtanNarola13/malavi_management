@@ -15,19 +15,29 @@ class _AddCompanyState extends State<AddCompany> {
     String companyName = _companyController.text.trim();
 
     if (companyName.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('company').add({
-        'name': companyName,
-        'created_at': Timestamp.now(),
-      });
+      await FirebaseFirestore.instance.collection('company').add(
+        {
+          'name': companyName,
+          'created_at': Timestamp.now(),
+        },
+      );
 
       Navigator.of(context).pop(); // Close the dialog
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Company "$companyName" added.')),
+        SnackBar(
+          content: Text(
+            'Company "$companyName" added.',
+          ),
+        ),
       );
       _companyController.clear(); // Clear the text field
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Company name cannot be empty.')),
+        const SnackBar(
+          content: Text(
+            'Company name cannot be empty.',
+          ),
+        ),
       );
     }
   }
@@ -40,7 +50,42 @@ class _AddCompanyState extends State<AddCompany> {
           title: const Text('Add Company'),
           content: TextField(
             controller: _companyController,
-            decoration: const InputDecoration(hintText: 'Company Name'),
+            decoration: const InputDecoration(
+              hintText: 'Company Name',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Cancel',
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              onPressed: _addCompany,
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editCompany(DocumentSnapshot company) {
+    _companyController.text = company['name'];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Company'),
+          content: TextField(
+            controller: _companyController,
+            decoration: const InputDecoration(
+              hintText: 'Company Name',
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -50,8 +95,32 @@ class _AddCompanyState extends State<AddCompany> {
               },
             ),
             TextButton(
-              child: const Text('Add'),
-              onPressed: _addCompany,
+              onPressed: () async {
+                String newCompanyName = _companyController.text.trim();
+                if (newCompanyName.isNotEmpty) {
+                  await FirebaseFirestore.instance
+                      .collection('company')
+                      .doc(company.id)
+                      .update({'name': newCompanyName});
+
+                  Navigator.of(context).pop(); // Close the dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Company "${company['name']}" updated to "$newCompanyName".',
+                      ),
+                    ),
+                  );
+                  _companyController.clear(); // Clear the text field
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Company name cannot be empty.'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Update'),
             ),
           ],
         );
@@ -59,13 +128,24 @@ class _AddCompanyState extends State<AddCompany> {
     );
   }
 
+  void _deleteCompany(DocumentSnapshot company) async {
+    await FirebaseFirestore.instance
+        .collection('company')
+        .doc(company.id)
+        .delete();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Company "${company['name']}" deleted.'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.sizeOf(context).height;
-    double width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Company'),
+        title: const Text('Manage Companies'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('company').snapshots(),
@@ -90,6 +170,19 @@ class _AddCompanyState extends State<AddCompany> {
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: ListTile(
                   title: Text(company['name']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _editCompany(company),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteCompany(company),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -105,7 +198,9 @@ class _AddCompanyState extends State<AddCompany> {
 }
 
 void main() {
-  runApp(MaterialApp(
-    home: AddCompany(),
-  ));
+  runApp(
+    const MaterialApp(
+      home: AddCompany(),
+    ),
+  );
 }

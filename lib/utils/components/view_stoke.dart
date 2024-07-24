@@ -10,8 +10,10 @@ class ViewStock extends StatefulWidget {
 
 class _ViewStockState extends State<ViewStock> {
   final TextEditingController searchController = TextEditingController();
+
   List _allResult = [];
   List _resutlList = [];
+
   getAllProducts() async {
     var data =
         await FirebaseFirestore.instance.collection('productStock').get();

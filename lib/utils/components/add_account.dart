@@ -18,6 +18,7 @@ class _AddAccountState extends State<AddAccount> {
 
   @override
   void dispose() {
+    _formKey.currentState?.dispose();
     _accountNameController.dispose();
     _addressController.dispose();
     _phoneNumberController.dispose();
@@ -26,9 +27,11 @@ class _AddAccountState extends State<AddAccount> {
 
   Future<void> _uploadData() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(
+        () {
+          _isLoading = true;
+        },
+      );
       try {
         // Determine collection name based on account type
         String collectionName = _selectedAccountType == 'Sale party'
@@ -36,12 +39,14 @@ class _AddAccountState extends State<AddAccount> {
             : 'purchase party account';
 
         // Save data to Firestore
-        await FirebaseFirestore.instance.collection(collectionName).add({
-          'account_name': _accountNameController.text,
-          'address': _addressController.text,
-          'phone_number': _phoneNumberController.text,
-          'account_type': _selectedAccountType,
-        });
+        await FirebaseFirestore.instance.collection(collectionName).add(
+          {
+            'account_name': _accountNameController.text,
+            'address': _addressController.text,
+            'phone_number': _phoneNumberController.text,
+            'account_type': _selectedAccountType,
+          },
+        );
 
         // Clear form
         _formKey.currentState!.reset();
@@ -54,17 +59,34 @@ class _AddAccountState extends State<AddAccount> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account added successfully!')));
+          const SnackBar(
+            content: Text(
+              'Account added successfully!',
+            ),
+          ),
+        );
       } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to add account: $e')));
+        setState(
+          () {
+            _isLoading = false;
+          },
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to add account: $e',
+            ),
+          ),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all fields.')));
+        const SnackBar(
+          content: Text(
+            'Please fill all fields.',
+          ),
+        ),
+      );
     }
   }
 
@@ -109,7 +131,10 @@ class _AddAccountState extends State<AddAccount> {
                         10.0,
                       ),
                     ),
-                    borderSide: BorderSide(color: Colors.yellow),
+                    borderSide: BorderSide(
+                      color: Colors.yellow,
+                      style: BorderStyle.solid,
+                    ),
                   ),
                 ),
                 validator: (value) => value!.isEmpty ? 'Enter address' : null,

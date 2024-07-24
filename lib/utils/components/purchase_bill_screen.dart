@@ -1,12 +1,16 @@
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PurchaseBillScreen extends StatefulWidget {
+  const PurchaseBillScreen({super.key});
+
   @override
   _PurchaseBillScreenState createState() => _PurchaseBillScreenState();
 }
 
 class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
+
   String? selectedProduct;
   String? selectedParty;
   int? quantity;
@@ -50,13 +54,17 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     decoration: InputDecoration(
                       labelText: 'Purchase party account',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ),
                       ),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        selectedParty = value!;
-                      });
+                      setState(
+                        () {
+                          selectedParty = value!;
+                        },
+                      );
                     },
                   );
                 },

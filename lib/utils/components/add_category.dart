@@ -50,8 +50,8 @@ class _AddCategoryState extends State<AddCategory> {
               },
             ),
             TextButton(
-              child: const Text('Add'),
               onPressed: _addCategory,
+              child: const Text('Add'),
             ),
           ],
         );
@@ -59,23 +59,103 @@ class _AddCategoryState extends State<AddCategory> {
     );
   }
 
+  void _editCategory(DocumentSnapshot category) {
+    _categoryController.text = category['name'];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Category'),
+          content: TextField(
+            controller: _categoryController,
+            decoration: const InputDecoration(hintText: 'Category Name'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              onPressed: () async {
+                String newCategoryName = _categoryController.text.trim();
+                if (newCategoryName.isNotEmpty) {
+                  await FirebaseFirestore.instance
+                      .collection('category')
+                      .doc(category.id)
+                      .update({'name': newCategoryName});
+
+                  Navigator.of(context).pop(); // Close the dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Category "${category['name']}" updated to "$newCategoryName".',
+                      ),
+                    ),
+                  );
+                  _categoryController.clear(); // Clear the text field
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Category name cannot be empty.',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                'Update',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteCategory(DocumentSnapshot category) async {
+    await FirebaseFirestore.instance
+        .collection('category')
+        .doc(category.id)
+        .delete();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Category "${category['name']}" deleted.',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.sizeOf(context).height;
-    double width = MediaQuery.sizeOf(context).width;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Category'),
+        title: const Text(
+          'Manage Categories',
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('category').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No categories found'));
+            return const Center(
+              child: Text(
+                'No categories found',
+              ),
+            );
           }
 
           final categories = snapshot.data!.docs;
@@ -92,9 +172,24 @@ class _AddCategoryState extends State<AddCategory> {
 
                       return Card(
                         margin: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
+                          vertical: 8.0,
+                          horizontal: 16.0,
+                        ),
                         child: ListTile(
                           title: Text(category['name']),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _editCategory(category),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _deleteCategory(category),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -114,7 +209,9 @@ class _AddCategoryState extends State<AddCategory> {
 }
 
 void main() {
-  runApp(const MaterialApp(
-    home: AddCategory(),
-  ));
+  runApp(
+    const MaterialApp(
+      home: AddCategory(),
+    ),
+  );
 }

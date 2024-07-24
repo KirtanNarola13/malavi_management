@@ -5,10 +5,14 @@ import 'package:malavi_management/utils/helpers/auth_helper.dart';
 import 'package:malavi_management/utils/model/signup_model.dart';
 
 class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
   @override
   Widget build(BuildContext context) {
+
     TextEditingController loginEmailController = TextEditingController();
     TextEditingController loginPasswordController = TextEditingController();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
