@@ -147,25 +147,27 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                               ListTile(
                                 title: const Text('MRP'),
                                 subtitle: Text(
-                                    double.parse(bill['mrp'].toString())
-                                        .toStringAsFixed(2)),
+                                    "₹ ${double.parse(bill['mrp'].toString()).toStringAsFixed(2)}"),
                               ),
                               ListTile(
                                 title: const Text('Purchase Rate'),
-                                subtitle: Text(double.parse(
-                                        bill['purchaseRate'].toString())
-                                    .toStringAsFixed(2)),
+                                subtitle: Text(
+                                    "₹ ${double.parse(bill['purchaseRate'].toString()).toStringAsFixed(2)}"),
                               ),
                               ListTile(
                                 title: const Text('Total Amount'),
                                 subtitle: Text(
-                                    double.parse(bill['totalAmount'].toString())
-                                        .toStringAsFixed(2)),
+                                    " ₹ ${double.parse(bill['totalAmount'].toString()).toStringAsFixed(2)}"),
                               ),
                               ListTile(
                                 title: const Text('Margin'),
                                 subtitle: Text(
                                     '${double.parse(bill['margin'].toString()).toStringAsFixed(2)}%'),
+                              ),
+                              ListTile(
+                                title: const Text('Sale rate'),
+                                subtitle: Text(
+                                    ' ₹ ${double.parse(bill['saleRate'].toString()).toStringAsFixed(2)}'),
                               ),
                               ListTile(
                                 title: const Text('Date'),
