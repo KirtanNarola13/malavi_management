@@ -22,6 +22,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
   double? netAmount;
   List<Map<String, dynamic>> billItems = [];
   String? billNumber; // Add this field to store the bill number
+  int? editIndex; // To keep track of the index of the item being edited
 
   final amountController = TextEditingController();
   final freeQuantityController = TextEditingController();
@@ -51,7 +52,9 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Text('No party accounts found');
@@ -133,22 +136,25 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       return const Text('No party products found');
                     }
                     return DropdownButtonFormField<String>(
+                      isExpanded: true,
                       hint: const Text('Select Party\'s Product'),
                       value: selectedPartyProduct,
                       items: snapshot.data!.docs.map((doc) {
                         return DropdownMenuItem<String>(
                           value: doc.id,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(doc['partyName']),
-                              Text(
-                                "MRP: ${doc['mrp']} | Margin: ${doc['margin']} | Purchase Rate: ${doc['saleRate']}",
-                                style: const TextStyle(
-                                  fontSize: 10,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(doc['partyName']),
+                                Text(
+                                  "MRP: ${doc['mrp']} | Margin: ${doc['margin']} | Purchase Rate: ${doc['saleRate']}",
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),
@@ -332,7 +338,15 @@ class _SellBillScreenState extends State<SellBillScreen> {
               // Add Product Button
               Center(
                 child: ElevatedButton(
-                  onPressed: addProductToBill,
+                  onPressed: () {
+                    if (editIndex != null) {
+                      // Update the product if editing
+                      updateProductInBill(editIndex!);
+                    } else {
+                      // Add a new product if not editing
+                      addProductToBill();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.yellow[700],
                     padding: const EdgeInsets.symmetric(
@@ -340,9 +354,9 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       vertical: 10,
                     ),
                   ),
-                  child: const Text(
-                    'Add Product',
-                    style: TextStyle(
+                  child: Text(
+                    editIndex != null ? 'Update Product' : 'Add Product',
+                    style: const TextStyle(
                       fontSize: 18,
                     ),
                   ),
@@ -375,13 +389,46 @@ class _SellBillScreenState extends State<SellBillScreen> {
                           return ListTile(
                             title: Text(item['productName']),
                             subtitle: Text('Quantity: ${item['quantity']}'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                setState(() {
-                                  billItems.removeAt(index);
-                                });
-                              },
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () {
+                                    setState(() {
+                                      editIndex = index;
+                                      // Populate fields for editing
+                                      selectedParty = item['partyName'];
+                                      selectedProduct = item['productName'];
+                                      quantity = item['quantity'];
+                                      freeQuantityController.text =
+                                          item['freeQuantity'];
+                                      mrpController.text =
+                                          item['mrp'].toString();
+                                      marginController.text =
+                                          item['margin'].toString();
+                                      saleRateController.text =
+                                          item['saleRate'].toString();
+                                      amountController.text =
+                                          item['amount'].toString();
+                                      discountController.text =
+                                          item['discount'].toString();
+                                      netAmountController.text =
+                                          item['netAmount'].toString();
+                                      // Calculate the amount and net amount
+                                      calculateAmount();
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                      billItems.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -491,6 +538,40 @@ class _SellBillScreenState extends State<SellBillScreen> {
     }
   }
 
+  void updateProductInBill(int index) {
+    if (selectedProduct != null && quantity != null && netAmount != null) {
+      setState(() {
+        billItems[index] = {
+          'partyName': selectedParty,
+          'productName': selectedProduct,
+          'quantity': quantity,
+          'freeQuantity': freeQuantityController.text,
+          'mrp': mrp,
+          'margin': marginPercentage,
+          'saleRate': saleRate,
+          'amount': amount,
+          'discount': discount,
+          'netAmount': netAmount,
+          'date':
+              "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+        };
+        editIndex = null; // Reset editIndex after updating
+        quantity = null;
+        amount = null;
+        discount = null;
+        netAmount = null;
+        amountController.clear();
+        discountController.clear();
+        netAmountController.clear();
+        freeQuantityController.clear();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete the product details')),
+      );
+    }
+  }
+
   Future<void> fetchLastBillNumber() async {
     final billsCollection = FirebaseFirestore.instance.collection('sellBills');
     final lastBillDoc = await billsCollection
@@ -517,33 +598,36 @@ class _SellBillScreenState extends State<SellBillScreen> {
 
       for (var item in billItems) {
         grandTotal += item['netAmount'];
-        itemsToSave.add({
-          'partyName': item['partyName'],
-          'productName': item['productName'],
-          'quantity': item['quantity'],
-          'freeQuantity': item['freeQuantity'],
-          'mrp': item['mrp'],
-          'margin': item['margin'],
-          'saleRate': item['saleRate'],
-          'amount': item['amount'],
-          'discount': item['discount'],
-          'netAmount': item['netAmount'],
-          'date':
-              "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
-        });
+
+        itemsToSave.add(
+          {
+            'partyName': item['partyName'],
+            'productName': item['productName'],
+            'quantity': item['quantity'],
+            'freeQuantity': item['freeQuantity'],
+            'mrp': item['mrp'],
+            'margin': item['margin'],
+            'saleRate': item['saleRate'],
+            'amount': item['amount'],
+            'discount': item['discount'],
+            'netAmount': item['netAmount'],
+            'date': "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+          },
+        );
       }
 
       await FirebaseFirestore.instance.collection('sellBills').add({
         'billNumber': billNumber,
         'grandTotal': grandTotal,
         'items': itemsToSave,
-        'date':
-            "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
-        'party_name': selectedParty,
+        'date': "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}", 'party_name': selectedParty,
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sell Bill Saved')),
+        const SnackBar(
+          content: Text(
+            'Sell Bill Saved',
+          ),
+        ),
       );
 
       setState(() {
@@ -551,7 +635,11 @@ class _SellBillScreenState extends State<SellBillScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No items to save')),
+        const SnackBar(
+          content: Text(
+            'No items to save',
+          ),
+        ),
       );
     }
   }
