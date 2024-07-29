@@ -138,14 +138,6 @@ class _ViewStockState extends State<ViewStock> {
                           data: ThemeData()
                               .copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
-                            leading: Container(
-                              height: 50,
-                              width: 50,
-                              child: Image.network(
-                                imgUrl,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
                             title: Text(productName),
                             subtitle: FutureBuilder<QuerySnapshot>(
                               future: FirebaseFirestore.instance
@@ -165,7 +157,7 @@ class _ViewStockState extends State<ViewStock> {
                                     var historyData =
                                         element.data() as Map<String, dynamic>;
                                     return previousValue +
-                                        (historyData['quantity'] as int);
+                                        (historyData['quantity'] as int? ?? 0);
                                   },
                                 );
 
@@ -192,9 +184,10 @@ class _ViewStockState extends State<ViewStock> {
                                       var historyData =
                                           doc.data() as Map<String, dynamic>;
                                       var partyName = historyData['partyName'];
-                                      var quantity = historyData['quantity'];
-                                      var totalAmount =
-                                          historyData['totalAmount'];
+                                      var quantity =
+                                          historyData['quantity'] as int? ?? 0;
+                                      var totalAmount = historyData[
+                                          'totalAmount']; // assuming it's a double or int, handle accordingly
                                       var date =
                                           historyData['date'] as Timestamp;
                                       var formattedDate =

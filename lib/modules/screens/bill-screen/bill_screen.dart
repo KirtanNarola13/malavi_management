@@ -93,16 +93,15 @@ class _BillScreenState extends State<BillScreen> {
 
   Future<pw.Document> generatePdf(QueryDocumentSnapshot bill) async {
     final pdf = pw.Document();
+
     pw.Widget buildCell(String text, {bool isHeader = false}) {
       return pw.Padding(
-        padding: const pw.EdgeInsets.all(
-          8.0,
-        ),
+        padding: const pw.EdgeInsets.all(8.0),
         child: pw.Text(
           text,
           textAlign: pw.TextAlign.center,
           style: pw.TextStyle(
-            fontSize: isHeader ? 16 : 14,
+            fontSize: isHeader ? 10 : 9,
             fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
           ),
         ),
@@ -131,13 +130,25 @@ class _BillScreenState extends State<BillScreen> {
               ),
               pw.Table(
                 border: pw.TableBorder.all(), // Optional: Adds border to table
+                columnWidths: {
+                  0: pw.FixedColumnWidth(200), // Make the first column wider
+                  1: pw.FixedColumnWidth(50),
+                  2: pw.FixedColumnWidth(50),
+                  3: pw.FixedColumnWidth(50),
+                  4: pw.FixedColumnWidth(50),
+                  5: pw.FixedColumnWidth(50),
+                  6: pw.FixedColumnWidth(70),
+                },
                 children: [
                   // Table header
                   pw.TableRow(
                     children: [
-                      buildCell('Description', isHeader: true),
+                      buildCell('Name', isHeader: true),
+                      buildCell('MRP', isHeader: true),
                       buildCell('Quantity', isHeader: true),
-                      buildCell('Price/Unit', isHeader: true),
+                      buildCell('Free', isHeader: true),
+                      buildCell('Price', isHeader: true),
+                      buildCell('Disscount', isHeader: true),
                       buildCell('Amount', isHeader: true),
                     ],
                   ),
@@ -146,10 +157,15 @@ class _BillScreenState extends State<BillScreen> {
                     String formattedAmount = item['netAmount'].toStringAsFixed(
                       2,
                     );
+                    String formattedPrice = item['saleRate'].toStringAsFixed(2);
+
                     return pw.TableRow(
                       children: [
                         buildCell(item['productName']),
+                        buildCell(item['mrp'].toString()),
                         buildCell(item['quantity'].toString()),
+                        buildCell(item['freeQuantity'].toString()),
+                        buildCell(formattedPrice),
                         buildCell(item['discount']
                             .toString()), // Ensure this key exists in your data
                         buildCell(formattedAmount),
@@ -158,6 +174,9 @@ class _BillScreenState extends State<BillScreen> {
                   }).toList()),
                   pw.TableRow(
                     children: [
+                      buildCell(''),
+                      buildCell(''),
+                      buildCell(''),
                       buildCell(''),
                       buildCell(''),
                       buildCell('Total'),
@@ -175,8 +194,6 @@ class _BillScreenState extends State<BillScreen> {
         },
       ),
     );
-
-// Helper function to build table cells with centered text
 
     return pdf;
   }

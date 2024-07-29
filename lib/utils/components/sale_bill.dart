@@ -16,6 +16,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
   double? marginPercentage;
   double? saleRate;
   int? quantity;
+  int? freeQuantity;
   double? amount;
   double? discount;
   double? netAmount;
@@ -23,6 +24,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
   String? billNumber; // Add this field to store the bill number
 
   final amountController = TextEditingController();
+  final freeQuantityController = TextEditingController();
   final discountController = TextEditingController();
   final netAmountController = TextEditingController();
   final marginController = TextEditingController();
@@ -94,8 +96,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     value: selectedProduct,
                     items: snapshot.data!.docs.map((doc) {
                       return DropdownMenuItem<String>(
-                        value: doc['title'],
-                        child: Text(doc['title']),
+                        value: doc['productName'],
+                        child: Text(doc['productName']),
                       );
                     }).toList(),
                     decoration: InputDecoration(
@@ -114,6 +116,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 },
               ),
 
+              const SizedBox(height: 10),
               // Dropdown to select party's product associated with selected product
               if (selectedProduct != null)
                 StreamBuilder<QuerySnapshot>(
@@ -192,6 +195,20 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       calculateAmount(); // Call calculateAmount() on quantity change
                     });
                   },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Free Quantity',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      borderSide: BorderSide(color: Colors.yellow),
+                    ),
+                  ),
+                  controller: freeQuantityController,
+                  keyboardType: TextInputType.number,
                 ),
               ),
 
@@ -448,6 +465,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
           'partyName': selectedParty,
           'productName': selectedProduct,
           'quantity': quantity,
+          'freeQuantity': freeQuantityController.text,
           'mrp': mrp,
           'margin': marginPercentage,
           'saleRate': saleRate,
@@ -464,6 +482,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
         amountController.clear();
         discountController.clear();
         netAmountController.clear();
+        freeQuantityController.clear();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -502,6 +521,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
           'partyName': item['partyName'],
           'productName': item['productName'],
           'quantity': item['quantity'],
+          'freeQuantity': item['freeQuantity'],
           'mrp': item['mrp'],
           'margin': item['margin'],
           'saleRate': item['saleRate'],
