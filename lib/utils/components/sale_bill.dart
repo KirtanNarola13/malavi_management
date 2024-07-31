@@ -12,6 +12,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
   String? selectedParty;
   String? selectedProduct;
   String? selectedPartyProduct;
+  String? salesMan;
   double? mrp;
   double? marginPercentage;
   double? saleRate;
@@ -25,11 +26,58 @@ class _SellBillScreenState extends State<SellBillScreen> {
 
   final amountController = TextEditingController();
   final freeQuantityController = TextEditingController();
+  final salesManController = TextEditingController();
   final discountController = TextEditingController();
   final netAmountController = TextEditingController();
   final marginController = TextEditingController();
   final mrpController = TextEditingController();
   final saleRateController = TextEditingController();
+
+  void _showProductSelectionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Product'),
+          content: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('productStock')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Text('No products found');
+              }
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  return ListTile(
+                    title: Text(doc['productName']),
+                    onTap: () {
+                      setState(() {
+                        selectedProduct = doc['productName'];
+                        Navigator.pop(context);
+                      });
+                      fetchProductDetails(selectedProduct!);
+                    },
+                  );
+                }).toList(),
+              );
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +224,25 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   },
                 ),
               const SizedBox(height: 15),
-
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Sales Man',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      borderSide: BorderSide(color: Colors.yellow),
+                    ),
+                  ),
+                  controller: salesManController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    setState(() {
+                      salesMan = value;
+                    });
+                  },
+                ),
+              ),
               // Quantity input
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -479,6 +545,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
         amount = null;
         discount = null;
         netAmount = null;
+        salesMan = null;
+        salesManController.clear();
         amountController.clear();
         discountController.clear();
         netAmountController.clear();
@@ -520,6 +588,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
         itemsToSave.add({
           'partyName': item['partyName'],
           'productName': item['productName'],
+          'salesMan': item['salesMan'],
           'quantity': item['quantity'],
           'freeQuantity': item['freeQuantity'],
           'mrp': item['mrp'],
@@ -537,6 +606,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
         'billNumber': billNumber,
         'grandTotal': grandTotal,
         'items': itemsToSave,
+        'salesMan': salesMan,
         'date':
             "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
         'party_name': selectedParty,
