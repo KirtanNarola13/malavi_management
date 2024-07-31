@@ -32,10 +32,14 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Purchase Bill'),
+        title: const Text(
+          'Create Purchase Bill',
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(
+          10,
+        ),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -53,24 +57,32 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     items: snapshot.data?.docs.map((doc) {
                       return DropdownMenuItem<String>(
                         value: doc['account_name'],
-                        child: Text(doc['account_name']),
+                        child: Text(
+                          doc['account_name'],
+                        ),
                       );
                     }).toList(),
                     decoration: InputDecoration(
                       labelText: 'Purchase party account',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ),
                       ),
                     ),
                     onChanged: (value) {
-                      setState(() {
-                        selectedParty = value!;
-                      });
+                      setState(
+                        () {
+                          selectedParty = value!;
+                        },
+                      );
                     },
                   );
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(
+                height: 10,
+              ),
               // Dropdown to select product
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -86,13 +98,17 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       imgUrl = doc['image_url'];
                       return DropdownMenuItem<String>(
                         value: doc['title'],
-                        child: Text(doc['title']),
+                        child: Text(
+                          doc['title'],
+                        ),
                       );
                     }).toList(),
                     decoration: InputDecoration(
                       labelText: 'Select product',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ),
                       ),
                     ),
                     onChanged: (value) {
@@ -103,7 +119,9 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(
+                height: 10,
+              ),
               Row(
                 children: [
                   Expanded(
@@ -112,28 +130,42 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Quantity',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(
+                              10.0,
+                            ),
+                          ),
                           borderSide: BorderSide(color: Colors.yellow),
                         ),
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        setState(() {
-                          quantity = int.tryParse(value);
-                          calculateTotalAmount();
-                        });
+                        setState(
+                          () {
+                            quantity = int.tryParse(value);
+                            calculateTotalAmount();
+                          },
+                        );
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(
+                    width: 10,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: mrpController,
                       decoration: const InputDecoration(
                         labelText: 'MRP',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.yellow),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(
+                              10.0,
+                            ),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.yellow,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -147,7 +179,9 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(
+                height: 10,
+              ),
               Row(
                 children: [
                   Expanded(
@@ -156,28 +190,44 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Purchase rate',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.yellow),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(
+                              10.0,
+                            ),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.yellow,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        setState(() {
-                          purchaseRate = double.tryParse(value);
-                          calculateTotalAmount();
-                        });
+                        setState(
+                          () {
+                            purchaseRate = double.tryParse(value);
+                            calculateTotalAmount();
+                          },
+                        );
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(
+                    width: 10,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: totalAmountController,
                       decoration: const InputDecoration(
                         labelText: 'Total Amount',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.yellow),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(
+                              10.0,
+                            ),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.yellow,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -447,17 +497,20 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
         final productDocRef = productStockRef.doc(productName);
 
-        await productDocRef.set({
-          'quantity': FieldValue.increment(quantity),
-          'purchaseRate': purchaseRate,
-          'mrp': mrp,
-          'productName': productName,
-          'image_url': image,
-          'saleRate': saleRate,
-          'margin': margin, // Add this line
-          'partyName': selectedParty!,
-          'date': Timestamp.now(),
-        }, SetOptions(merge: true));
+        await productDocRef.set(
+          {
+            'quantity': FieldValue.increment(quantity),
+            'purchaseRate': purchaseRate,
+            'mrp': mrp,
+            'productName': productName,
+            'image_url': image,
+            'saleRate': saleRate,
+            'margin': margin, // Add this line
+            'partyName': selectedParty!,
+            'date': Timestamp.now(),
+          },
+          SetOptions(merge: true),
+        );
 
         final purchaseHistoryRef =
             productDocRef.collection('purchaseHistory').doc();
@@ -475,14 +528,20 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         });
       }
 
-      setState(() {
-        selectedParty = null;
-        billItems.clear();
-        resetFields();
-      });
+      setState(
+        () {
+          selectedParty = null;
+          billItems.clear();
+          resetFields();
+        },
+      );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Purchase Bill Saved Successfully')),
+      ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Purchase Bill Saved Successfully',
+          ),
+        ),
       );
     }
   }

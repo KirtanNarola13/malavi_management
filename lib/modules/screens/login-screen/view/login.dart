@@ -9,7 +9,6 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     TextEditingController loginEmailController = TextEditingController();
     TextEditingController loginPasswordController = TextEditingController();
 
@@ -30,7 +29,7 @@ class LoginPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Container(
+      body: SizedBox(
         height: MediaQuery.of(context).size.height,
         width: double.infinity,
         child: Column(
@@ -43,12 +42,17 @@ class LoginPage extends StatelessWidget {
                   Column(
                     children: <Widget>[
                       FadeInUp(
-                          duration: const Duration(milliseconds: 1000),
-                          child: const Text(
-                            "Login",
-                            style: TextStyle(
-                                fontSize: 30, fontWeight: FontWeight.bold),
-                          )),
+                        duration: const Duration(
+                          milliseconds: 1000,
+                        ),
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),
@@ -66,16 +70,20 @@ class LoginPage extends StatelessWidget {
                     child: Column(
                       children: <Widget>[
                         FadeInUp(
-                            duration: const Duration(milliseconds: 1200),
-                            child: makeInput(
-                                label: "Email",
-                                controller: loginEmailController)),
+                          duration: const Duration(milliseconds: 1200),
+                          child: makeInput(
+                            label: "Email",
+                            controller: loginEmailController,
+                          ),
+                        ),
                         FadeInUp(
-                            duration: const Duration(milliseconds: 1300),
-                            child: makeInput(
-                                label: "Password",
-                                obscureText: true,
-                                controller: loginPasswordController)),
+                          duration: const Duration(milliseconds: 1300),
+                          child: makeInput(
+                            label: "Password",
+                            obscureText: true,
+                            controller: loginPasswordController,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -106,32 +114,44 @@ class LoginPage extends StatelessWidget {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => NavBarScreen()),
+                                  builder: (context) => const NavBarScreen(),
+                                ),
                                 (Route<dynamic> route) => false,
                               );
                             },
                             color: Colors.greenAccent,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50)),
+                              borderRadius: BorderRadius.circular(
+                                50,
+                              ),
+                            ),
                             child: const Text(
                               "Login",
                               style: TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 18),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                              ),
                             ),
                           ),
                         ),
                       )),
                   FadeInUp(
-                      duration: const Duration(milliseconds: 1500),
+                      duration: const Duration(
+                        milliseconds: 1500,
+                      ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Text("Don't have an account?"),
+                          Text(
+                            "Don't have an account?",
+                          ),
                           Text(
                             "Sign up",
                             style: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 18),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                            ),
                           ),
                         ],
                       ))

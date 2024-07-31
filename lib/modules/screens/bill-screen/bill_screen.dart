@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share/share.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'bill_edit_screen.dart'; // Import the edit screen
 
 class BillScreen extends StatefulWidget {
   const BillScreen({super.key});
@@ -14,7 +15,14 @@ class BillScreen extends StatefulWidget {
 
 class _BillScreenState extends State<BillScreen> {
   final CollectionReference sellBillsCollection =
-      FirebaseFirestore.instance.collection('sellBills');
+  FirebaseFirestore.instance.collection('sellBills');
+
+  Future<void> _deleteBill(String billId) async {
+    await FirebaseFirestore.instance
+        .collection('sellBills')
+        .doc(billId)
+        .delete();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +52,8 @@ class _BillScreenState extends State<BillScreen> {
                 child: Theme(
                   data: ThemeData().copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
-                    title: Text(
-                      bill['party_name'],
-                    ),
-                    subtitle: Text(
-                      bill['date'],
-                    ),
+                    title: Text(bill['party_name']),
+                    subtitle: Text(bill['date']),
                     children: [
                       Column(
                         children: items.map<Widget>((item) {
@@ -72,12 +76,43 @@ class _BillScreenState extends State<BillScreen> {
                               Share.shareFiles([file.path], text: 'Your Bill');
                             },
                           ),
-                          // IconButton(
-                          //   icon: const Icon(Icons.edit),
-                          //   onPressed: () {
-                          //     // Implement editing functionality
-                          //   },
-                          // ),
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditBillScreen(bill: bill),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () async {
+                              final shouldDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Delete Bill'),
+                                  content: const Text('Are you sure you want to delete this bill?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (shouldDelete == true) {
+                                await _deleteBill(bill.id);
+                              }
+                            },
+                          ),
                         ],
                       ),
                     ],
@@ -129,18 +164,17 @@ class _BillScreenState extends State<BillScreen> {
                 height: 20,
               ),
               pw.Table(
-                border: pw.TableBorder.all(), // Optional: Adds border to table
+                border: pw.TableBorder.all(),
                 columnWidths: {
-                  0: pw.FixedColumnWidth(200), // Make the first column wider
-                  1: pw.FixedColumnWidth(50),
-                  2: pw.FixedColumnWidth(50),
-                  3: pw.FixedColumnWidth(50),
-                  4: pw.FixedColumnWidth(50),
-                  5: pw.FixedColumnWidth(50),
-                  6: pw.FixedColumnWidth(70),
+                  0: const pw.FixedColumnWidth(200),
+                  1: const pw.FixedColumnWidth(50),
+                  2: const pw.FixedColumnWidth(50),
+                  3: const pw.FixedColumnWidth(50),
+                  4: const pw.FixedColumnWidth(50),
+                  5: const pw.FixedColumnWidth(50),
+                  6: const pw.FixedColumnWidth(70),
                 },
                 children: [
-                  // Table header
                   pw.TableRow(
                     children: [
                       buildCell('Name', isHeader: true),
@@ -148,15 +182,12 @@ class _BillScreenState extends State<BillScreen> {
                       buildCell('Quantity', isHeader: true),
                       buildCell('Free', isHeader: true),
                       buildCell('Price', isHeader: true),
-                      buildCell('Disscount', isHeader: true),
+                      buildCell('Discount', isHeader: true),
                       buildCell('Amount', isHeader: true),
                     ],
                   ),
-                  // Table rows
                   ...((bill['items'] as List).map((item) {
-                    String formattedAmount = item['netAmount'].toStringAsFixed(
-                      2,
-                    );
+                    String formattedAmount = item['netAmount'].toStringAsFixed(2);
                     String formattedPrice = item['saleRate'].toStringAsFixed(2);
 
                     return pw.TableRow(
@@ -166,8 +197,7 @@ class _BillScreenState extends State<BillScreen> {
                         buildCell(item['quantity'].toString()),
                         buildCell(item['freeQuantity'].toString()),
                         buildCell(formattedPrice),
-                        buildCell(item['discount']
-                            .toString()), // Ensure this key exists in your data
+                        buildCell(item['discount'].toString()),
                         buildCell(formattedAmount),
                       ],
                     );
@@ -181,9 +211,7 @@ class _BillScreenState extends State<BillScreen> {
                       buildCell(''),
                       buildCell('Total'),
                       buildCell(
-                        '${bill['grandTotal'].toStringAsFixed(
-                          2,
-                        )}',
+                        '${bill['grandTotal'].toStringAsFixed(2)}',
                       ),
                     ],
                   ),
