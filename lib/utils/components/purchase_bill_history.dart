@@ -204,7 +204,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
 
   Future<void> getAllProducts() async {
     var data =
-    await FirebaseFirestore.instance.collection('pendingBills').get();
+        await FirebaseFirestore.instance.collection('pendingBills').get();
     setState(() {
       _allResult = data.docs;
     });
@@ -234,7 +234,10 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
   }
 
   Future<void> deleteBill(String billId) async {
-    await FirebaseFirestore.instance.collection('pendingBills').doc(billId).delete();
+    await FirebaseFirestore.instance
+        .collection('pendingBills')
+        .doc(billId)
+        .delete();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Bill deleted')),
     );
@@ -287,7 +290,9 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                     Icons.search_outlined,
                     color: Colors.grey.shade700,
                   ),
-                  SizedBox(width: width / 35),
+                  SizedBox(
+                    width: width / 35,
+                  ),
                   Container(
                     alignment: Alignment.center,
                     width: width / 1.5,
@@ -317,7 +322,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                       vertical: 8.0, horizontal: 16.0),
                   color: Colors.yellow.shade200.withOpacity(0.8),
                   child: Theme(
-                    data: ThemeData().copyWith(dividerColor: Colors.transparent),
+                    data:
+                        ThemeData().copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       title: Text('Party: ${bill['partyName']}'),
                       trailing: Text('$daysAgo days ago'),
@@ -335,7 +341,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                         ListTile(
                           title: const Text('Time'),
                           subtitle:
-                          Text('${billDate.hour} : ${billDate.minute}'),
+                              Text('${billDate.hour} : ${billDate.minute}'),
                         ),
                         ...bill['billItems'].map<Widget>((item) {
                           return Column(
@@ -401,7 +407,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
 class EditBillScreen extends StatelessWidget {
   final String billId;
 
-  const EditBillScreen({Key? key, required this.billId}) : super(key: key);
+  const EditBillScreen({super.key, required this.billId});
 
   @override
   Widget build(BuildContext context) {

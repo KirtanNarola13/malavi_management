@@ -14,30 +14,39 @@ class _ViewStockState extends State<ViewStock> {
   List _allResult = [];
   List _resutlList = [];
 
-  getAllProducts() async {
-    var data =
-        await FirebaseFirestore.instance.collection('productStock').get();
-    setState(() {
-      _allResult = data.docs;
-    });
-    searchResultList();
-  }
-
   @override
   void initState() {
     searchController.addListener(_onSearchChanged);
     super.initState();
+    getAllProducts();
   }
 
-  _onSearchChanged() {
+  getAllProducts() async {
+    var data =
+        await FirebaseFirestore.instance.collection('productStock').get();
+    setState(
+      () {
+        _allResult = data.docs;
+      },
+    );
     searchResultList();
   }
 
-  searchResultList() {
+  // @override
+  // void initState() {
+  //   searchController.addListener(_onSearchChanged);
+  //   super.initState();
+  // }
+
+  void _onSearchChanged() {
+    searchResultList();
+  }
+
+  void searchResultList() {
     var showResult = [];
-    if (searchController.text != "") {
+    if (searchController.text.isNotEmpty) {
       for (var productSnapshot in _allResult) {
-        var name = productSnapshot['title'].toString().toLowerCase();
+        var name = productSnapshot['partyName'].toString().toLowerCase();
         if (name.contains(searchController.text.toLowerCase())) {
           showResult.add(productSnapshot);
         }
@@ -50,7 +59,43 @@ class _ViewStockState extends State<ViewStock> {
       _resutlList = showResult;
     });
   }
+  // _onSearchChanged() {
+  //   searchResultList();
+  // }
+  //
+  // searchResultList() {
+  //   var showResult = [];
+  //   if (searchController.text != "") {
+  //     for (var productSnapshot in _allResult) {
+  //       var name = productSnapshot['title'].toString().toLowerCase();
+  //       if (name.contains(searchController.text.toLowerCase())) {
+  //         showResult.add(productSnapshot);
+  //       }
+  //     }
+  //   } else {
+  //     showResult = List.from(_allResult);
+  //   }
+  //
+  //   setState(
+  //     () {
+  //       _resutlList = showResult;
+  //     },
+  //   );
+  // }
 
+  // @override
+  // void dispose() {
+  //   searchController.removeListener(
+  //     _onSearchChanged,
+  //   );
+  //   super.dispose();
+  // }
+
+  @override
+  void didChangeDependencies() {
+    getAllProducts();
+    super.didChangeDependencies();
+  }
   @override
   void dispose() {
     searchController.removeListener(_onSearchChanged);
@@ -58,41 +103,45 @@ class _ViewStockState extends State<ViewStock> {
   }
 
   @override
-  void didChangeDependencies() {
-    getAllProducts();
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
+
     double height = MediaQuery.sizeOf(context).height;
     double width = MediaQuery.sizeOf(context).width;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Stock'),
+        title: const Text(
+          'Product Stock',
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance.collection('productStock').snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
-
-          var productDocs = snapshot.data!.docs;
 
           return SingleChildScrollView(
             child: Column(
               children: [
                 Center(
                   child: Container(
-                    padding: EdgeInsets.only(left: 10),
-                    margin: EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(
+                      left: 10,
+                    ),
+                    margin: const EdgeInsets.only(
+                      bottom: 10,
+                    ),
                     height: height / 16,
                     width: width / 1.2,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(40),
+                      borderRadius: BorderRadius.circular(
+                        40,
+                      ),
                       border: Border.all(
                         color: Colors.grey.shade700,
                         width: 1,
@@ -104,13 +153,15 @@ class _ViewStockState extends State<ViewStock> {
                           Icons.search_outlined,
                           color: Colors.grey.shade700,
                         ),
-                        SizedBox(width: width / 35),
+                        SizedBox(
+                          width: width / 35,
+                        ),
                         Container(
                           alignment: Alignment.center,
                           width: width / 1.5,
                           child: TextFormField(
                             controller: searchController,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               hintText: 'Search product',
                               border: InputBorder.none,
                             ),
@@ -127,12 +178,11 @@ class _ViewStockState extends State<ViewStock> {
                     itemBuilder: (context, index) {
                       var productDoc = _resutlList[index];
                       var productName = productDoc.id;
-                      var productData =
-                          productDoc.data() as Map<String, dynamic>;
-                      var imgUrl = productData['image_url'];
 
                       return Card(
-                        margin: EdgeInsets.all(10),
+                        margin: const EdgeInsets.all(
+                          10,
+                        ),
                         color: Colors.yellow.shade200.withOpacity(0.5),
                         child: Theme(
                           data: ThemeData()
@@ -160,8 +210,9 @@ class _ViewStockState extends State<ViewStock> {
                                         (historyData['quantity'] as int? ?? 0);
                                   },
                                 );
-
-                                return Text('Total Quantity: $totalQuantity');
+                                return Text(
+                                  'Total Quantity: $totalQuantity',
+                                );
                               },
                             ),
                             children: [
@@ -196,7 +247,8 @@ class _ViewStockState extends State<ViewStock> {
                                       return ListTile(
                                         title: Text('Party: $partyName'),
                                         subtitle: Text(
-                                            'Quantity: $quantity\nTotal Amount: $totalAmount\nDate: $formattedDate'),
+                                          'Quantity: $quantity\nTotal Amount: $totalAmount\nDate: $formattedDate',
+                                        ),
                                       );
                                     }).toList(),
                                   );
