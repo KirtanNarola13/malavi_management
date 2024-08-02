@@ -339,7 +339,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
       'margin': margin ?? 0.0,
       'saleRate': saleRate ?? 0.0,
       'mrp': mrp ?? 0.0,
-      'imageUrl': imgUrl ?? '',
+      'image_url': imgUrl ?? '',
     };
     setState(() {
       billItems.add(product);
@@ -357,7 +357,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
       'margin': margin ?? 0.0,
       'saleRate': saleRate ?? 0.0,
       'mrp': mrp ?? 0.0,
-      'imageUrl': imgUrl ?? '',
+      'image_url': imgUrl ?? '',
     };
     setState(() {
       billItems[editingIndex!] = product;
@@ -377,7 +377,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
       margin = item['margin'];
       saleRate = item['saleRate'];
       mrp = item['mrp'];
-      imgUrl = item['imageUrl'];
+      imgUrl = item['image_url'];
 
       quantityController.text = quantity.toString();
       purchaseRateController.text = purchaseRate.toString();
@@ -473,14 +473,8 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
         await productDocRef.set(
           {
-            'quantity': FieldValue.increment(quantity),
-            'purchaseRate': purchaseRate,
-            'mrp': mrp,
             'productName': productName,
             'image_url': image,
-            'saleRate': saleRate,
-            'margin': margin, // Add this line
-            'partyName': selectedParty!,
             'date': Timestamp.now(),
           },
           SetOptions(merge: true),
