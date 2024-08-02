@@ -12,9 +12,6 @@ class AllProducts extends StatefulWidget {
 
 class _AllProductsState extends State<AllProducts> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController searchController = TextEditingController();
-
-  List _allResult = [];
 
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
     QuerySnapshot querySnapshot = await _firestore.collection('products').get();
@@ -41,13 +38,12 @@ class _AllProductsState extends State<AllProducts> {
       }
     }
   }
+  // search
 
-  @override
-  void initState() {
-    searchController.addListener(_onSearchChanged);
-    super.initState();
-    getAllProducts();
-  }
+  final TextEditingController searchController = TextEditingController();
+
+  List _allResult = [];
+  List _resultList = [];
 
   Future<void> getAllProducts() async {
     var data = await FirebaseFirestore.instance.collection('products').get();
@@ -64,21 +60,26 @@ class _AllProductsState extends State<AllProducts> {
   void searchResultList() {
     var showResult = [];
     if (searchController.text.isNotEmpty) {
-      for (var productSnapshot in _allResult) {
-        var name = productSnapshot['category'].toString().toLowerCase();
+      for (var billSnapshot in _allResult) {
+        var name = billSnapshot['title'].toString().toLowerCase();
         if (name.contains(searchController.text.toLowerCase())) {
-          showResult.add(productSnapshot);
+          showResult.add(billSnapshot);
         }
       }
     } else {
       showResult = List.from(_allResult);
     }
 
-    setState(
-      () {
-        _allResult = showResult;
-      },
-    );
+    setState(() {
+      _resultList = showResult;
+    });
+  }
+
+  @override
+  void initState() {
+    searchController.addListener(_onSearchChanged);
+    super.initState();
+    getAllProducts();
   }
 
   @override
@@ -157,9 +158,9 @@ class _AllProductsState extends State<AllProducts> {
                 }
                 List<Map<String, dynamic>> products = snapshot.data!;
                 return ListView.builder(
-                  itemCount: products.length,
+                  itemCount: _resultList.length,
                   itemBuilder: (context, index) {
-                    Map<String, dynamic> product = products[index];
+                    var product = _resultList[index];
                     return Padding(
                       padding: const EdgeInsets.all(
                         8.0,

@@ -18,6 +18,8 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
   double? totalAmount;
   double? mrp;
   double? saleRate;
+  double? netAmount;
+  double grandTotal = 0.0;
   List<Map<String, dynamic>> billItems = [];
   int? editingIndex;
 
@@ -27,19 +29,17 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
   final totalAmountController = TextEditingController();
   final quantityController = TextEditingController();
   final mrpController = TextEditingController();
+  final netAmountController = TextEditingController();
+  final grandTotalController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Create Purchase Bill',
-        ),
+        title: const Text('Create Purchase Bill'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(
-          10,
-        ),
+        padding: const EdgeInsets.all(10),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -57,32 +57,24 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     items: snapshot.data?.docs.map((doc) {
                       return DropdownMenuItem<String>(
                         value: doc['account_name'],
-                        child: Text(
-                          doc['account_name'],
-                        ),
+                        child: Text(doc['account_name']),
                       );
                     }).toList(),
                     decoration: InputDecoration(
                       labelText: 'Purchase party account',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          10,
-                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onChanged: (value) {
-                      setState(
-                        () {
-                          selectedParty = value!;
-                        },
-                      );
+                      setState(() {
+                        selectedParty = value!;
+                      });
                     },
                   );
                 },
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
               // Dropdown to select product
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -98,17 +90,13 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       imgUrl = doc['image_url'];
                       return DropdownMenuItem<String>(
                         value: doc['title'],
-                        child: Text(
-                          doc['title'],
-                        ),
+                        child: Text(doc['title']),
                       );
                     }).toList(),
                     decoration: InputDecoration(
                       labelText: 'Select product',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          10,
-                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onChanged: (value) {
@@ -119,9 +107,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   );
                 },
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -130,42 +116,26 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Quantity',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(
-                              10.0,
-                            ),
-                          ),
-                          borderSide: BorderSide(color: Colors.yellow),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         ),
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        setState(
-                          () {
-                            quantity = int.tryParse(value);
-                            calculateTotalAmount();
-                          },
-                        );
+                        setState(() {
+                          quantity = int.tryParse(value);
+                          calculateTotalAmount();
+                        });
                       },
                     ),
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       controller: mrpController,
                       decoration: const InputDecoration(
                         labelText: 'MRP',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(
-                              10.0,
-                            ),
-                          ),
-                          borderSide: BorderSide(
-                            color: Colors.yellow,
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -179,9 +149,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -190,44 +158,26 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Purchase rate',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(
-                              10.0,
-                            ),
-                          ),
-                          borderSide: BorderSide(
-                            color: Colors.yellow,
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         ),
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        setState(
-                          () {
-                            purchaseRate = double.tryParse(value);
-                            calculateTotalAmount();
-                          },
-                        );
+                        setState(() {
+                          purchaseRate = double.tryParse(value);
+                          calculateTotalAmount();
+                        });
                       },
                     ),
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       controller: totalAmountController,
                       decoration: const InputDecoration(
                         labelText: 'Total Amount',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(
-                              10.0,
-                            ),
-                          ),
-                          borderSide: BorderSide(
-                            color: Colors.yellow,
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -246,7 +196,6 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         labelText: 'Margin (%)',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.yellow),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -266,7 +215,6 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         labelText: 'Sale Rate',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.yellow),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -274,9 +222,27 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         setState(() {
                           saleRate = double.tryParse(value) ?? 0.0;
                           calculateMargin();
-                          calculateTotalAmount();
                         });
                       },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Grand Total
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: grandTotalController,
+                      decoration: const InputDecoration(
+                        labelText: 'Grand Total',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      readOnly: true,
                     ),
                   ),
                 ],
@@ -334,6 +300,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                                   onPressed: () {
                                     setState(() {
                                       billItems.removeAt(index);
+                                      calculateGrandTotal();
                                     });
                                   },
                                 ),
@@ -343,11 +310,10 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 5),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: savePurchaseBill,
                 style: ElevatedButton.styleFrom(
@@ -355,7 +321,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                 ),
-                child: const Text('Save Purchase Bill'),
+                child: const Text('Save Bill'),
               ),
             ],
           ),
@@ -364,105 +330,113 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
     );
   }
 
-  void calculateSaleRate() {
-    if (mrp != null && margin != null && margin! > 0) {
-      setState(() {
-        saleRate = mrp! / (1 + (margin! / 100));
-        saleRateController.text = saleRate!.toStringAsFixed(2);
-        calculateTotalAmount();
-      });
-    }
+  void addProductToBill() {
+    final product = {
+      'productName': selectedProduct,
+      'quantity': quantity ?? 0,
+      'purchaseRate': purchaseRate ?? 0.0,
+      'totalAmount': totalAmount ?? 0.0,
+      'margin': margin ?? 0.0,
+      'saleRate': saleRate ?? 0.0,
+      'mrp': mrp ?? 0.0,
+      'imageUrl': imgUrl ?? '',
+    };
+    setState(() {
+      billItems.add(product);
+      clearInputs();
+      calculateGrandTotal();
+    });
   }
 
-  void calculateMargin() {
-    if (mrp != null && saleRate != null && saleRate! > 0) {
-      setState(() {
-        margin = (mrp! / saleRate! - 1) * 100;
-        marginController.text = margin!.toStringAsFixed(2);
-      });
-    }
+  void updateProductInBill() {
+    final product = {
+      'productName': selectedProduct,
+      'quantity': quantity ?? 0,
+      'purchaseRate': purchaseRate ?? 0.0,
+      'totalAmount': totalAmount ?? 0.0,
+      'margin': margin ?? 0.0,
+      'saleRate': saleRate ?? 0.0,
+      'mrp': mrp ?? 0.0,
+      'imageUrl': imgUrl ?? '',
+    };
+    setState(() {
+      billItems[editingIndex!] = product;
+      clearInputs();
+      editingIndex = null;
+      calculateGrandTotal();
+    });
+  }
+
+  void editProduct(int index) {
+    final item = billItems[index];
+    setState(() {
+      selectedProduct = item['productName'];
+      quantity = item['quantity'];
+      purchaseRate = item['purchaseRate'];
+      totalAmount = item['totalAmount'];
+      margin = item['margin'];
+      saleRate = item['saleRate'];
+      mrp = item['mrp'];
+      imgUrl = item['imageUrl'];
+
+      quantityController.text = quantity.toString();
+      purchaseRateController.text = purchaseRate.toString();
+      totalAmountController.text = totalAmount.toString();
+      marginController.text = margin.toString();
+      saleRateController.text = saleRate.toString();
+      mrpController.text = mrp.toString();
+
+      editingIndex = index;
+    });
+  }
+
+  void clearInputs() {
+    selectedProduct = null;
+    quantity = null;
+    purchaseRate = null;
+    totalAmount = null;
+    margin = null;
+    saleRate = null;
+    mrp = null;
+    imgUrl = null;
+
+    quantityController.clear();
+    purchaseRateController.clear();
+    totalAmountController.clear();
+    marginController.clear();
+    saleRateController.clear();
+    mrpController.clear();
   }
 
   void calculateTotalAmount() {
     if (quantity != null && purchaseRate != null) {
       setState(() {
-        totalAmount = quantity! * purchaseRate!;
-        totalAmountController.text = totalAmount!.toStringAsFixed(2);
+        totalAmount = (quantity ?? 0) * (purchaseRate ?? 0.0);
+        totalAmountController.text = totalAmount.toString();
       });
     }
   }
 
-  void addProductToBill() {
-    if (selectedProduct != null && quantity != null && purchaseRate != null) {
-      setState(() {
-        billItems.add({
-          'productName': selectedProduct!,
-          'quantity': quantity!,
-          'image_url': imgUrl,
-          'purchaseRate': purchaseRate!,
-          'mrp': mrp!,
-          'saleRate': saleRate!,
-          'margin': margin!, // Add this line
-          'totalAmount': totalAmount!,
-        });
-        resetFields();
-      });
+  void calculateSaleRate() {
+    if (mrp != null && margin != null) {
+      saleRate = mrp! - (mrp! * margin! / 100);
+      saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
     }
   }
 
-  void updateProductInBill() {
-    if (selectedProduct != null && quantity != null && purchaseRate != null) {
-      setState(() {
-        billItems[editingIndex!] = {
-          'productName': selectedProduct!,
-          'quantity': quantity!,
-          'purchaseRate': purchaseRate!,
-          'image_url': imgUrl,
-          'mrp': mrp!,
-          'saleRate': saleRate!,
-          'totalAmount': totalAmount!,
-        };
-        resetFields();
-        editingIndex = null;
-      });
+  void calculateMargin() {
+    double minusAmount;
+    if (mrp != null && saleRate != null) {
+      minusAmount = mrp! - saleRate!;
+      margin = (minusAmount / mrp!) * 100;
+      marginController.text = margin?.toStringAsFixed(3) ?? '';
     }
   }
 
-  void editProduct(int index) {
-    setState(() {
-      selectedProduct = billItems[index]['productName'];
-      quantity = billItems[index]['quantity'];
-      purchaseRate = billItems[index]['purchaseRate'];
-      mrp = billItems[index]['mrp'];
-      saleRate = billItems[index]['saleRate'];
-      imgUrl = billItems[index]['image_url'];
-      totalAmount = billItems[index]['totalAmount'];
-
-      quantityController.text = quantity.toString();
-      purchaseRateController.text = purchaseRate.toString();
-      mrpController.text = mrp.toString();
-      saleRateController.text = saleRate.toString();
-      totalAmountController.text = totalAmount.toString();
-      editingIndex = index;
-    });
-  }
-
-  void resetFields() {
-    setState(() {
-      selectedProduct = null;
-      quantity = null;
-      purchaseRate = null;
-      mrp = null;
-      saleRate = null;
-      totalAmount = null;
-
-      quantityController.clear();
-      purchaseRateController.clear();
-      mrpController.clear();
-      saleRateController.clear();
-      totalAmountController.clear();
-      marginController.clear();
-    });
+  void calculateGrandTotal() {
+    grandTotal = billItems.fold(
+        0.0, (total, item) => total + (item['totalAmount'] ?? 0.0));
+    grandTotalController.text = grandTotal.toString();
   }
 
   void savePurchaseBill() async {
@@ -481,8 +455,8 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
       await newBillRef.set({
         'partyName': selectedParty!,
         'billItems': billItems,
-        'totalAmount': totalAmount.toString(),
-        'timestamp': Timestamp.now(),
+        'grandTotal': grandTotal.toString(),
+        'createdAt': Timestamp.now(),
       });
 
       for (final item in billItems) {
@@ -532,7 +506,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         () {
           selectedParty = null;
           billItems.clear();
-          resetFields();
+          clearInputs();
         },
       );
 

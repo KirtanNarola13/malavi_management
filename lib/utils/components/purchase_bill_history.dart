@@ -313,7 +313,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
               itemCount: _resultList.length,
               itemBuilder: (context, index) {
                 final bill = _resultList[index];
-                final Timestamp timestamp = bill['timestamp'];
+                final Timestamp timestamp = bill['createdAt'];
                 final DateTime billDate = timestamp.toDate();
                 final int daysAgo = DateTime.now().difference(billDate).inDays;
 
@@ -329,9 +329,9 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                       trailing: Text('$daysAgo days ago'),
                       children: [
                         ListTile(
-                          title: const Text('Total Amount'),
+                          title: const Text('Grand Total'),
                           subtitle: Text(
-                              " ₹ ${double.parse(bill['totalAmount'].toString()).toStringAsFixed(2)}"),
+                              " ₹ ${double.parse(bill['grandTotal'].toString()).toStringAsFixed(2)}"),
                         ),
                         ListTile(
                           title: const Text('Date'),
