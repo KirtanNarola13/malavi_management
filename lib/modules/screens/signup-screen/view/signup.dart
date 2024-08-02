@@ -49,17 +49,20 @@ class SignupPage extends StatelessWidget {
                 Column(
                   children: <Widget>[
                     FadeInUp(
-                        duration: const Duration(milliseconds: 1000),
-                        child: const Text(
-                          "Sign up",
-                          style: TextStyle(
-                              fontSize: 30, fontWeight: FontWeight.bold),
-                        )),
+                      duration: const Duration(milliseconds: 1000),
+                      child: const Text(
+                        "Sign up",
+                        style: TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                     const SizedBox(
                       height: 20,
                     ),
                     FadeInUp(
-                        duration: const Duration(milliseconds: 1200),
+                        duration: const Duration(
+                          milliseconds: 1200,
+                        ),
                         child: Text(
                           "Create an account, It's free",
                           style:

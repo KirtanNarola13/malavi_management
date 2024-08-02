@@ -10,14 +10,9 @@ import 'package:malavi_management/utils/components/view_stoke.dart';
 
 import '../../../utils/components/add_company.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.yellow.withOpacity(0.5),
+                  color: Colors.yellow.withOpacity(
+                    0.5,
+                  ),
                   borderRadius: const BorderRadius.all(
                     Radius.circular(30),
                   ),
@@ -308,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PurchaseBillScreen(),
+                    builder: (context) => const PurchaseBillScreen(),
                   ),
                 );
               },
@@ -410,18 +407,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SellBillScreen(),
+                    builder: (context) => const SellBillScreen(),
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(
+                30,
+              ),
               splashColor: Colors.yellow,
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.yellow.withOpacity(0.5),
+                  color: Colors.yellow.withOpacity(
+                    0.5,
+                  ),
                   borderRadius: const BorderRadius.all(
-                    Radius.circular(30),
+                    Radius.circular(
+                      30,
+                    ),
                   ),
                 ),
                 child: const Center(
@@ -439,9 +442,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         "Sale Bill",
                         style: TextStyle(
-                            fontSize: 18,
-                            letterSpacing: 1,
-                            fontStyle: FontStyle.italic),
+                          fontSize: 18,
+                          letterSpacing: 1,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                       SizedBox(
                         height: 1,

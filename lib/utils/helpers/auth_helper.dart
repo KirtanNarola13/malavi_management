@@ -1,8 +1,10 @@
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../model/signup_model.dart'; // Update the import path to your constant strings
 
 class AuthHelper {
+
   AuthHelper._();
 
   static final AuthHelper authHelper = AuthHelper._();
