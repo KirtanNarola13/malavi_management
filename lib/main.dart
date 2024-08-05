@@ -2,12 +2,12 @@ import 'package:animate_do/animate_do.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:malavi_management/modules/screens/nav-bar-screen/nav_bar_screen.dart';
+import 'package:malavi_management/utils/components/product_edit_purchase_bill_history.dart';
 import 'package:malavi_management/utils/helpers/auth_helper.dart';
 import 'modules/screens/login-screen/view/login.dart';
 import 'modules/screens/signup-screen/view/signup.dart';
 
 Future<void> main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
@@ -17,6 +17,10 @@ Future<void> main() async {
       home: (AuthHelper.auth.currentUser != null)
           ? const NavBarScreen()
           : const HomePage(),
+      routes: {
+        'productEditScreenPurchaseBillHistory': (context) =>
+            ProductEditPurchaseBillHistory(),
+      },
     ),
   );
 }
@@ -113,64 +117,6 @@ class HomePage extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  FadeInUp(
-                    duration: const Duration(
-                      milliseconds: 1600,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        top: 3,
-                        left: 3,
-                      ),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            50,
-                          ),
-                          border: const Border(
-                            bottom: BorderSide(
-                              color: Colors.black,
-                            ),
-                            top: BorderSide(
-                              color: Colors.black,
-                            ),
-                            left: BorderSide(
-                              color: Colors.black,
-                            ),
-                            right: BorderSide(
-                              color: Colors.black,
-                            ),
-                          )),
-                      child: MaterialButton(
-                        minWidth: double.infinity,
-                        height: 60,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SignupPage(),
-                            ),
-                          );
-                        },
-                        color: Colors.yellow,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            50,
-                          ),
-                        ),
-                        child: const Text(
-                          "Sign up",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                          ),
                         ),
                       ),
                     ),

@@ -22,11 +22,10 @@ class _SellBillScreenState extends State<SellBillScreen> {
   double? discount;
   double? netAmount;
   List<Map<String, dynamic>> billItems = [];
-  String? billNumber; // Field to store the bill number
+  String? billNumber; // Add this field to store the bill number
 
   final amountController = TextEditingController();
   final freeQuantityController = TextEditingController();
-  final salesManController = TextEditingController();
   final discountController = TextEditingController();
   final netAmountController = TextEditingController();
   final marginController = TextEditingController();
@@ -41,27 +40,42 @@ class _SellBillScreenState extends State<SellBillScreen> {
         title: const Text('Create Sell Bill'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Sales Man',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                    borderSide: BorderSide(color: Colors.yellow),
-                  ),
-                ),
-                controller: salesManController,
-                keyboardType: TextInputType.text,
-                onChanged: (value) {
-                  salesMan = value;
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('salesMan')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Text('No sales man');
+                  }
+                  return DropdownButtonFormField<String>(
+                    value: salesMan,
+                    items: snapshot.data!.docs.map((doc) {
+                      return DropdownMenuItem<String>(
+                        value: doc['name'],
+                        child: Text(doc['name']),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Sales Man',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        salesMan = value!;
+                      });
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 10),
-              // Dropdown to select purchase party from "sale party account" collection
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('sale party account')
@@ -78,10 +92,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     items: snapshot.data!.docs.map((doc) {
                       return DropdownMenuItem<String>(
                         value: doc['account_name'],
-                        child: Text(
-                          doc['account_name'],
-                          style: TextStyle(fontSize: 14),
-                        ),
+                        child: Text(doc['account_name']),
                       );
                     }).toList(),
                     decoration: InputDecoration(
@@ -99,6 +110,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 },
               ),
               const SizedBox(height: 10),
+
               // Dropdown to select product from "productStock" collection
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -111,17 +123,25 @@ class _SellBillScreenState extends State<SellBillScreen> {
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Text('No products found');
                   }
+
+                  List<DropdownMenuItem<String>> items =
+                      snapshot.data!.docs.map((doc) {
+                    return DropdownMenuItem<String>(
+                      value: doc.id,
+                      child: Text(
+                          "${doc['productName']} | Stock ${doc['totalStock']}"),
+                    );
+                  }).toList();
+
+                  // Check if the selectedProduct is in the list of items
+                  if (selectedProduct != null &&
+                      !items.any((item) => item.value == selectedProduct)) {
+                    selectedProduct = null; // or set it to a default value
+                  }
+
                   return DropdownButtonFormField<String>(
                     value: selectedProduct,
-                    items: snapshot.data!.docs.map((doc) {
-                      return DropdownMenuItem<String>(
-                        value: doc['productName'],
-                        child: Text(
-                          doc['productName'],
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
+                    items: items,
                     decoration: InputDecoration(
                       labelText: 'Select Product',
                       border: OutlineInputBorder(
@@ -130,13 +150,14 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        selectedProduct = value!;
+                        selectedProduct = value;
                         fetchProductDetails(selectedProduct!);
                       });
                     },
                   );
                 },
               ),
+
               const SizedBox(height: 10),
               // Dropdown to select party's product associated with selected product
               if (selectedProduct != null)
@@ -159,14 +180,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       items: snapshot.data!.docs.map((doc) {
                         return DropdownMenuItem<String>(
                           value: doc.id,
-                          child: Column(
-                            children: [
-                              Text(
-                                "${doc['partyName']} |  mrp : ${doc['mrp']}",
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
+                          child: Text("MRP: ${doc['mrp']}"),
                         );
                       }).toList(),
                       decoration: InputDecoration(
@@ -194,33 +208,40 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 ),
               const SizedBox(height: 10),
               // Quantity input
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Quantity',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                    borderSide: BorderSide(color: Colors.yellow),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      borderSide: BorderSide(color: Colors.yellow),
+                    ),
                   ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    quantity = int.tryParse(value);
+                    calculateAmount();
+                    // Call calculateAmount() on quantity change
+                    setState(() {});
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  quantity = int.tryParse(value);
-                  calculateAmount(); // Call calculateAmount() on quantity change
-                },
               ),
-              const SizedBox(height: 10),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Free Quantity',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                    borderSide: BorderSide(color: Colors.yellow),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Free Quantity',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      borderSide: BorderSide(color: Colors.yellow),
+                    ),
                   ),
+                  controller: freeQuantityController,
+                  keyboardType: TextInputType.number,
                 ),
-                controller: freeQuantityController,
-                keyboardType: TextInputType.number,
               ),
-              const SizedBox(height: 10),
+
               // MRP and Margin in a single row
               Row(
                 children: [
@@ -259,6 +280,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 ],
               ),
               const SizedBox(height: 10),
+
               // Sale Rate and Amount in a single row
               Row(
                 children: [
@@ -275,6 +297,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       onChanged: (value) {
                         saleRate = double.tryParse(value);
                         calculateAmount(); // Call calculateAmount() on sale rate change
+                        calculateMargin();
                       },
                     ),
                   ),
@@ -294,6 +317,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                 ],
               ),
               const SizedBox(height: 10),
+
               // Discount and Net Amount in a single row
               Row(
                 children: [
@@ -309,7 +333,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       controller: discountController,
                       onChanged: (value) {
                         discount = double.tryParse(value);
-                        calculateAmount(); // Call calculateAmount() on discount change
+                        calculateNetAmount();
                       },
                     ),
                   ),
@@ -324,28 +348,93 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       ),
                       keyboardType: TextInputType.number,
                       controller: netAmountController,
-                      readOnly: true,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (validateInputs()) {
-                    addToBill();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all fields')),
-                    );
-                  }
-                },
-                child: const Text('Add to Bill'),
+
+              // Add Product Button
+              Center(
+                child: ElevatedButton(
+                  onPressed: addProductToBill,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[700],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: const Text(
+                    'Add Product',
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: saveSellBill,
-                child: const Text('Save Bill'),
+
+              // List of added products
+              Visibility(
+                visible: billItems.isNotEmpty,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Added Products:',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black26),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ListView.builder(
+                        itemCount: billItems.length,
+                        itemBuilder: (context, index) {
+                          final item = billItems[index];
+                          return ListTile(
+                            title: Text(item['productName']),
+                            subtitle: Text('Quantity: ${item['quantity']}'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                setState(() {
+                                  billItems.removeAt(index);
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                  ],
+                ),
+              ),
+
+              // Save Bill Button
+              Center(
+                child: ElevatedButton(
+                  onPressed: saveSellBill,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[700],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: const Text(
+                    'Save Sell Bill',
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -354,113 +443,108 @@ class _SellBillScreenState extends State<SellBillScreen> {
     );
   }
 
-  // Fetch product details from Firestore and calculate sale rate
-  void fetchProductDetails(String productName) async {
-    var productDoc = await FirebaseFirestore.instance
+  Future<void> fetchProductDetails(String productName) async {
+    final doc = await FirebaseFirestore.instance
         .collection('productStock')
         .doc(productName)
         .get();
-
-    if (productDoc.exists) {
+    if (doc.exists) {
       setState(() {
-        mrp = productDoc['mrp'];
-        saleRate = productDoc['saleRate'];
-        marginPercentage = productDoc['margin'];
-        mrpController.text = mrp.toString();
-        saleRateController.text = saleRate.toString();
+        mrp = doc['mrp'];
+        marginPercentage = doc['margin'];
+        saleRate = doc['saleRate'];
       });
+      mrpController.text = mrp.toString();
+      marginController.text = marginPercentage.toString();
+      saleRateController.text = saleRate.toString();
+      calculateAmount();
     }
   }
 
-  // Calculate the amount based on quantity, sale rate, and discount
-  void calculateAmount() {
-    if (quantity != null && saleRate != null) {
-      double totalAmount = quantity! * (saleRate! - (discount ?? 0));
-      setState(() {
-        amount = totalAmount;
-        amountController.text = totalAmount.toString();
-        netAmount = totalAmount - (discount ?? 0);
-        netAmountController.text = netAmount.toString();
-      });
-    }
-  }
-
-  // Calculate sale rate based on MRP and margin percentage
   void calculateSaleRate() {
-    if (mrp != null && marginPercentage != null) {
+    saleRate = mrp! - (mrp! * marginPercentage! / 100);
+    saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
+  }
+
+  void calculateMargin() {
+    double minusAmount;
+    minusAmount = mrp! - saleRate!;
+    marginPercentage = (minusAmount / mrp!) * 100;
+    marginController.text = marginPercentage?.toStringAsFixed(3) ?? '';
+  }
+
+  void calculateAmount() {
+    amount = saleRate! * quantity!;
+    amountController.text = amount!.toStringAsFixed(2);
+    calculateNetAmount();
+  }
+
+  void calculateNetAmount() {
+    netAmount =
+        amount! - (amount! * ((discount == null) ? 0 : discount! / 100));
+    netAmountController.text = netAmount!.toStringAsFixed(2);
+  }
+
+  void addProductToBill() {
+    if (selectedProduct != null && quantity != null && netAmount != null) {
       setState(() {
-        saleRate = mrp! - (mrp! * (marginPercentage! / 100));
-        saleRateController.text = saleRate.toString();
+        billItems.add({
+          'partyName': selectedParty,
+          'productName': selectedProduct,
+          'quantity': quantity,
+          'freeQuantity': freeQuantityController.text,
+          'mrp': mrp,
+          'margin': marginPercentage,
+          'saleRate': saleRate,
+          'amount': amount,
+          'discount': discount,
+          'netAmount': netAmount,
+          'date':
+              "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+        });
+        quantity = null;
+        amount = null;
+        discount = null;
+        netAmount = null;
+        salesMan = null;
+        amountController.clear();
+        discountController.clear();
+        netAmountController.clear();
+        freeQuantityController.clear();
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete the product details')),
+      );
     }
   }
 
-  // Add item to bill list
-  void addToBill() {
-    setState(() {
-      billItems.add({
-        'partyName': selectedParty,
-        'productName': selectedProduct,
-        'salesMan': salesMan,
-        'quantity': quantity,
-        'freeQuantity': freeQuantity ?? 0,
-        'mrp': mrp,
-        'margin': marginPercentage,
-        'saleRate': saleRate,
-        'amount': amount,
-        'discount': discount,
-        'netAmount': netAmount,
-        'date':
-            "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
-      });
-      clearFields();
-    });
+  Future<void> fetchLastBillNumber() async {
+    final billsCollection = FirebaseFirestore.instance.collection('sellBills');
+    final lastBillDoc = await billsCollection
+        .orderBy('billNumber', descending: true)
+        .limit(1)
+        .get();
+
+    if (lastBillDoc.docs.isNotEmpty) {
+      final lastBillNumber = lastBillDoc.docs.first['billNumber'];
+      final currentNumber = int.parse(
+          lastBillNumber.substring(1)); // Remove the 'A' and convert to int
+      final newNumber = currentNumber + 1;
+      billNumber = 'A${newNumber.toString().padLeft(2, '0')}';
+    } else {
+      billNumber = 'A00'; // Start with A00 if no bills exist
+    }
   }
 
-  // Clear input fields
-  void clearFields() {
-    salesManController.clear();
-    freeQuantityController.clear();
-    amountController.clear();
-    discountController.clear();
-    netAmountController.clear();
-    marginController.clear();
-    mrpController.clear();
-    saleRateController.clear();
-    setState(() {
-      selectedParty = null;
-      selectedProduct = null;
-      selectedPartyProduct = null;
-      quantity = null;
-      freeQuantity = null;
-      mrp = null;
-      marginPercentage = null;
-      saleRate = null;
-      amount = null;
-      discount = null;
-      netAmount = null;
-    });
-  }
-
-  // Validate inputs
-  bool validateInputs() {
-    return selectedParty != null &&
-        selectedProduct != null &&
-        quantity != null &&
-        salesMan != null &&
-        amount != null &&
-        netAmount != null;
-  }
-
-  // Save sell bill to Firestore
-  Future<void> saveSellBill() async {
+  void saveSellBill() async {
     if (billItems.isNotEmpty) {
       await fetchLastBillNumber(); // Fetch the last bill number and generate a new one
       double grandTotal = 0;
       List<Map<String, dynamic>> itemsToSave = [];
 
       for (var item in billItems) {
-        grandTotal += item['netAmount'] as double;
+        grandTotal += item['netAmount'];
         itemsToSave.add({
           'partyName': item['partyName'],
           'productName': item['productName'],
@@ -478,34 +562,6 @@ class _SellBillScreenState extends State<SellBillScreen> {
         });
       }
 
-      // Decrement product quantity in the productStock collection
-      for (var item in billItems) {
-        var productDoc = FirebaseFirestore.instance
-            .collection('productStock')
-            .doc(item['productName']); // Assuming productName is the unique ID
-
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
-          var productSnapshot = await transaction.get(productDoc);
-
-          if (!productSnapshot.exists) {
-            throw Exception("Product not found");
-          }
-
-          var currentStock = productSnapshot['quantity'] as int;
-          var quantityToDecrement =
-              item['quantity'] + item['freeQuantity']?.toInt() ?? 0;
-
-          if (currentStock < quantityToDecrement) {
-            throw Exception("Insufficient stock");
-          }
-
-          transaction.update(productDoc, {
-            'quantity': currentStock - quantityToDecrement,
-          });
-        });
-      }
-
-      // Add sell bill to Firestore
       await FirebaseFirestore.instance.collection('sellBills').add({
         'billNumber': billNumber,
         'grandTotal': grandTotal,
@@ -527,27 +583,6 @@ class _SellBillScreenState extends State<SellBillScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No items to save')),
       );
-    }
-  }
-
-  // Fetch the last bill number from Firestore and increment
-  Future<void> fetchLastBillNumber() async {
-    var billQuery = await FirebaseFirestore.instance
-        .collection('sellBills')
-        .orderBy('billNumber', descending: true)
-        .limit(1)
-        .get();
-
-    if (billQuery.docs.isNotEmpty) {
-      var lastBill = billQuery.docs.first;
-      int lastBillNumber = lastBill['billNumber'];
-      setState(() {
-        billNumber = (lastBillNumber + 1).toString();
-      });
-    } else {
-      setState(() {
-        billNumber = '1';
-      });
     }
   }
 }

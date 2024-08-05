@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:malavi_management/utils/components/purchase_bill_edit_product_list.dart';
 
 class PurchaseBillHistory extends StatefulWidget {
   const PurchaseBillHistory({super.key});
@@ -63,11 +65,18 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
     getAllProducts(); // Refresh the list after deletion
   }
 
-  void editBill(String billId) {
+  void editBill(String billDocId, List billItems, String grandTotal) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditBillScreen(billId: billId),
+        builder: (context) => const PurchaseBillEditProductList(),
+        settings: RouteSettings(
+          arguments: {
+            'billDocId': billDocId,
+            'billItems': billItems,
+            'grandTotal': grandTotal,
+          },
+        ),
       ),
     );
   }
@@ -80,54 +89,68 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Payment Received'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: receivedAmountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Received Amount',
-                ),
-                onChanged: (value) {
-                  double receivedAmount = double.tryParse(value) ?? 0.0;
-                  setState(() {
-                    kasar = grandTotal - receivedAmount;
-                  });
-                },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Receive Payment'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: receivedAmountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Received Amount',
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        double receivedAmount = double.tryParse(value) ?? 0.0;
+                        kasar = grandTotal - receivedAmount;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller:
+                        TextEditingController(text: kasar.toStringAsFixed(2)),
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Kasar',
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
-              Text('Kasar: ₹ ${kasar.toStringAsFixed(2)}'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                double receivedAmount =
-                    double.tryParse(receivedAmountController.text) ?? 0.0;
-                await FirebaseFirestore.instance
-                    .collection('pendingBills')
-                    .doc(billId)
-                    .update({
-                  'receivedAmount': receivedAmount,
-                  'kasar': kasar,
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Payment recorded')),
-                );
-              },
-              child: const Text('Submit'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    double receivedAmount =
+                        double.tryParse(receivedAmountController.text) ?? 0.0;
+                    await FirebaseFirestore.instance
+                        .collection('pendingBills')
+                        .doc(billId)
+                        .update({
+                      'receivedAmount': receivedAmount,
+                      'kasar': kasar,
+                      'paymentStatus':
+                          receivedAmount >= grandTotal ? 'Paid' : 'Pending',
+                    });
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Payment recorded')),
+                    );
+                    getAllProducts(); // Refresh the list to show updated payment status
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -197,6 +220,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                 final int daysAgo = DateTime.now().difference(billDate).inDays;
                 final double grandTotal =
                     double.tryParse(bill['grandTotal'].toString()) ?? 0.0;
+                final String paymentStatus = bill['paymentStatus'] ?? 'Pending';
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -222,6 +246,10 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                           title: const Text('Time'),
                           subtitle:
                               Text('${billDate.hour} : ${billDate.minute}'),
+                        ),
+                        ListTile(
+                          title: const Text('Payment Status'),
+                          subtitle: Text(paymentStatus),
                         ),
                         ...bill['billItems'].map<Widget>((item) {
                           return Column(
@@ -262,20 +290,23 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                               child: const Text('Delete'),
                             ),
                             TextButton(
-                              onPressed: () => editBill(bill.id),
+                              onPressed: () => editBill(bill.id,
+                                  bill['billItems'], bill['grandTotal']),
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.blue,
                               ),
                               child: const Text('Edit'),
                             ),
-                            TextButton(
-                              onPressed: () =>
-                                  _showPaymentDialog(bill.id, grandTotal),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.green,
+                            if (paymentStatus ==
+                                'Pending') // Only show if payment status is 'Pending'
+                              TextButton(
+                                onPressed: () =>
+                                    _showPaymentDialog(bill.id, grandTotal),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.green,
+                                ),
+                                child: const Text('Receive Payment'),
                               ),
-                              child: const Text('Receive Payment'),
-                            ),
                           ],
                         ),
                       ],
@@ -286,25 +317,6 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Placeholder for the EditBillScreen
-class EditBillScreen extends StatelessWidget {
-  final String billId;
-
-  const EditBillScreen({super.key, required this.billId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Bill'),
-      ),
-      body: Center(
-        child: Text('Edit Bill Screen for Bill ID: $billId'),
       ),
     );
   }
