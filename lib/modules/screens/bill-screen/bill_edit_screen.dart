@@ -11,21 +11,41 @@ class EditBillScreen extends StatefulWidget {
 }
 
 class _EditBillScreenState extends State<EditBillScreen> {
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _partyNameController;
   late TextEditingController _dateController;
   late TextEditingController _billNumberController;
   late TextEditingController _grandTotalController;
+  late TextEditingController _mrpTotalController;
+  late TextEditingController _netamountController;
+  late TextEditingController _amountController;
 
   @override
   void initState() {
     super.initState();
     final bill = widget.bill.data() as Map<String, dynamic>;
-    _partyNameController = TextEditingController(text: bill['party_name']);
-    _dateController = TextEditingController(text: bill['date']);
-    _billNumberController = TextEditingController(text: bill['billNumber']);
-    _grandTotalController =
-        TextEditingController(text: bill['grandTotal'].toString());
+    _partyNameController = TextEditingController(
+      text: bill['party_name'],
+    );
+    _dateController = TextEditingController(
+      text: bill['date'],
+    );
+    _billNumberController = TextEditingController(
+      text: bill['billNumber'],
+    );
+    _mrpTotalController = TextEditingController(
+      text: bill['mrpTotal'].toString(),
+    );
+    _netamountController = TextEditingController(
+      text: bill['netAmount'].toString(),
+    );
+    _amountController = TextEditingController(
+      text: bill['AmountTotal'].toString(),
+    );
+    _grandTotalController = TextEditingController(
+      text: bill['grandTotal'].toString(),
+    );
   }
 
   Future<void> _updateBill() async {
@@ -35,6 +55,9 @@ class _EditBillScreenState extends State<EditBillScreen> {
         'date': _dateController.text,
         'billNumber': _billNumberController.text,
         'grandTotal': double.parse(_grandTotalController.text),
+        'mrpTotal': double.parse(_mrpTotalController.text),
+        'netAmount': double.parse(_netamountController.text),
+        'AmountTotal': double.parse(_amountController.text),
         // Update other fields as needed
       };
 
@@ -61,39 +84,77 @@ class _EditBillScreenState extends State<EditBillScreen> {
         ),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _partyNameController,
-                decoration: const InputDecoration(labelText: 'Party Name'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter party name' : null,
-              ),
-              TextFormField(
-                controller: _dateController,
-                decoration: const InputDecoration(labelText: 'Date'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter date' : null,
-              ),
-              TextFormField(
-                controller: _billNumberController,
-                decoration: const InputDecoration(labelText: 'Bill Number'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter bill number' : null,
-              ),
-              TextFormField(
-                controller: _grandTotalController,
-                decoration: const InputDecoration(labelText: 'Grand Total'),
-                keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter grand total' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateBill,
-                child: const Text('Update Bill'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _partyNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Party Name',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter party name' : null,
+                ),
+                TextFormField(
+                  controller: _dateController,
+                  decoration: const InputDecoration(
+                    labelText: 'Date',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter date' : null,
+                ),
+                TextFormField(
+                  controller: _billNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Bill Number',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter bill number' : null,
+                ),
+                TextFormField(
+                  controller: _mrpTotalController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mrp',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter bill number' : null,
+                ),
+                TextFormField(
+                  controller: _netamountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Net amount',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter bill number' : null,
+                ),
+                TextFormField(
+                  controller: _amountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount Total',
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter bill number' : null,
+                ),
+                TextFormField(
+                  controller: _grandTotalController,
+                  decoration: const InputDecoration(
+                    labelText: 'Grand Total',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter grand total' : null,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                  onPressed: _updateBill,
+                  child: const Text(
+                    'Update Bill',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
