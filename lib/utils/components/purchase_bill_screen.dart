@@ -102,7 +102,6 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     onChanged: (value) {
                       setState(() {
                         selectedProduct = value!;
-                        fetchProductDetails(selectedProduct!);
                       });
                     },
                   );
@@ -316,9 +315,9 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: saveBillToFirestore,
+                onPressed: savePurchaseBill,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.yellow[700],
                   padding:
                       const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                 ),
@@ -331,175 +330,195 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
     );
   }
 
+  void addProductToBill() {
+    final product = {
+      'productName': selectedProduct,
+      'quantity': quantity ?? 0,
+      'purchaseRate': purchaseRate ?? 0.0,
+      'totalAmount': totalAmount ?? 0.0,
+      'margin': margin ?? 0.0,
+      'saleRate': saleRate ?? 0.0,
+      'mrp': mrp ?? 0.0,
+      'image_url': imgUrl ?? '',
+    };
+    setState(() {
+      billItems.add(product);
+      clearInputs();
+      calculateGrandTotal();
+    });
+  }
+
+  void updateProductInBill() {
+    final product = {
+      'productName': selectedProduct,
+      'quantity': quantity ?? 0,
+      'purchaseRate': purchaseRate ?? 0.0,
+      'totalAmount': totalAmount ?? 0.0,
+      'margin': margin ?? 0.0,
+      'saleRate': saleRate ?? 0.0,
+      'mrp': mrp ?? 0.0,
+      'image_url': imgUrl ?? '',
+    };
+    setState(() {
+      billItems[editingIndex!] = product;
+      clearInputs();
+      editingIndex = null;
+      calculateGrandTotal();
+    });
+  }
+
+  void editProduct(int index) {
+    final item = billItems[index];
+    setState(() {
+      selectedProduct = item['productName'];
+      quantity = item['quantity'];
+      purchaseRate = item['purchaseRate'];
+      totalAmount = item['totalAmount'];
+      margin = item['margin'];
+      saleRate = item['saleRate'];
+      mrp = item['mrp'];
+      imgUrl = item['image_url'];
+
+      quantityController.text = quantity.toString();
+      purchaseRateController.text = purchaseRate.toString();
+      totalAmountController.text = totalAmount.toString();
+      marginController.text = margin.toString();
+      saleRateController.text = saleRate.toString();
+      mrpController.text = mrp.toString();
+
+      editingIndex = index;
+    });
+  }
+
+  void clearInputs() {
+    selectedProduct = null;
+    quantity = null;
+    purchaseRate = null;
+    totalAmount = null;
+    margin = null;
+    saleRate = null;
+    mrp = null;
+    imgUrl = null;
+
+    quantityController.clear();
+    purchaseRateController.clear();
+    totalAmountController.clear();
+    marginController.clear();
+    saleRateController.clear();
+    mrpController.clear();
+  }
+
   void calculateTotalAmount() {
-    if (purchaseRate != null && quantity != null) {
-      totalAmount = purchaseRate! * quantity!;
-      totalAmountController.text = totalAmount!.toStringAsFixed(2);
-    } else {
-      totalAmount = 0.0;
-      totalAmountController.text = '';
+    if (quantity != null && purchaseRate != null) {
+      setState(() {
+        totalAmount = (quantity ?? 0) * (purchaseRate ?? 0.0);
+        totalAmountController.text = totalAmount.toString();
+      });
     }
   }
 
   void calculateSaleRate() {
     if (mrp != null && margin != null) {
-      saleRate = mrp! * (1 + (margin! / 100));
-      saleRateController.text = saleRate!.toStringAsFixed(2);
-    } else {
-      saleRate = 0.0;
-      saleRateController.text = '';
+      saleRate = (mrp! / margin!);
+      saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
     }
   }
 
   void calculateMargin() {
+    double minusAmount;
     if (mrp != null && saleRate != null) {
-      margin = ((saleRate! - mrp!) / mrp!) * 100;
-      marginController.text = margin!.toStringAsFixed(2);
-    } else {
-      margin = 0.0;
-      marginController.text = '';
+      margin = mrp! / saleRate!;
+      marginController.text = margin?.toStringAsFixed(3) ?? '';
     }
   }
 
   void calculateGrandTotal() {
     grandTotal = billItems.fold(
-        0.0, (sum, item) => sum + (item['totalAmount'] as double? ?? 0.0));
-    grandTotalController.text = grandTotal.toStringAsFixed(2);
+        0.0, (total, item) => total + (item['totalAmount'] ?? 0.0));
+    grandTotalController.text = grandTotal.toString();
   }
 
-  void addProductToBill() {
-    if (selectedProduct != null &&
-        quantity != null &&
-        purchaseRate != null &&
-        saleRate != null &&
-        totalAmount != null) {
-      setState(() {
-        billItems.add({
-          'productName': selectedProduct,
+  void savePurchaseBill() async {
+    if (selectedParty != null && billItems.isNotEmpty) {
+      double totalAmount = 0;
+      for (final item in billItems) {
+        totalAmount += item['totalAmount'];
+      }
+
+      final pendingBillsRef =
+          FirebaseFirestore.instance.collection('pendingBills');
+      final productStockRef =
+          FirebaseFirestore.instance.collection('productStock');
+
+      final newBillRef = pendingBillsRef.doc();
+      await newBillRef.set({
+        'partyName': selectedParty!,
+        'billItems': billItems,
+        'paymentStatus': 'Pending',
+        'grandTotal': grandTotal.toString(),
+        'createdAt': Timestamp.now(),
+      });
+
+      // Loop through each item in the bill
+      for (final item in billItems) {
+        final productName = item['productName'];
+        final quantity = item['quantity'];
+        final purchaseRate = item['purchaseRate'];
+        final mrp = item['mrp'];
+        final saleRate = item['saleRate'];
+        final image = item['image_url'];
+        final totalAmountItem = item['totalAmount'];
+        final margin = item['margin'];
+
+        // Reference to the product document
+        final productDocRef = productStockRef.doc(productName);
+
+        // Calculate total stock
+        final purchaseHistoryRef = productDocRef.collection('purchaseHistory');
+        final purchaseHistorySnapshot = await purchaseHistoryRef.get();
+
+        double totalStock = 0.0;
+        for (final doc in purchaseHistorySnapshot.docs) {
+          final quantity = doc['quantity'] as double;
+          totalStock += quantity;
+        }
+
+        // Update product stock
+        await productDocRef.set({
+          'productName': productName,
+          'image_url': image,
+          'totalStock':
+              totalStock + quantity, // Add the new quantity to the total stock
+          'date': Timestamp.now(),
+        }, SetOptions(merge: true));
+
+        // Save purchase history for the product
+        final purchaseHistoryDocRef = purchaseHistoryRef.doc();
+        await purchaseHistoryDocRef.set({
           'quantity': quantity,
           'purchaseRate': purchaseRate,
-          'saleRate': saleRate,
-          'totalAmount': totalAmount,
-          'imageUrl': imgUrl,
           'mrp': mrp,
+          'productName': productName,
+          'image_url': image,
+          'saleRate': saleRate,
+          'margin': margin,
+          'totalAmount': totalAmountItem,
+          'partyName': selectedParty!,
+          'date': Timestamp.now(),
         });
-        calculateGrandTotal();
-        clearForm();
-      });
-    }
-  }
+      }
 
-  void updateProductInBill() {
-    if (selectedProduct != null &&
-        quantity != null &&
-        purchaseRate != null &&
-        saleRate != null &&
-        totalAmount != null &&
-        editingIndex != null) {
       setState(() {
-        billItems[editingIndex!] = {
-          'productName': selectedProduct,
-          'quantity': quantity,
-          'purchaseRate': purchaseRate,
-          'saleRate': saleRate,
-          'totalAmount': totalAmount,
-          'imageUrl': imgUrl,
-          'mrp': mrp,
-        };
-        calculateGrandTotal();
-        clearForm();
-        editingIndex = null;
-      });
-    }
-  }
-
-  void editProduct(int index) {
-    setState(() {
-      editingIndex = index;
-      final item = billItems[index];
-      selectedProduct = item['productName'];
-      quantity = item['quantity'];
-      purchaseRate = item['purchaseRate'];
-      saleRate = item['saleRate'];
-      totalAmount = item['totalAmount'];
-      imgUrl = item['imageUrl'];
-      mrp = item['mrp'];
-
-      selectedParty = selectedParty;
-      quantityController.text = quantity.toString();
-      purchaseRateController.text = purchaseRate.toString();
-      saleRateController.text = saleRate.toString();
-      totalAmountController.text = totalAmount.toString();
-      mrpController.text = mrp.toString();
-      marginController.text = margin.toString();
-    });
-  }
-
-  void clearForm() {
-    selectedProduct = null;
-    quantity = null;
-    purchaseRate = null;
-    saleRate = null;
-    totalAmount = null;
-    imgUrl = null;
-    mrp = null;
-
-    quantityController.clear();
-    purchaseRateController.clear();
-    saleRateController.clear();
-    totalAmountController.clear();
-    mrpController.clear();
-    marginController.clear();
-  }
-
-  void saveBillToFirestore() {
-    if (billItems.isEmpty || selectedParty == null) {
-      return;
-    }
-
-    FirebaseFirestore.instance.collection('purchaseBills').add({
-      'purchasePartyAccount': selectedParty,
-      'billItems': billItems,
-      'grandTotal': grandTotal,
-      'timestamp': FieldValue.serverTimestamp(),
-    }).then((value) {
-      // Clear the form and bill items after saving
-      setState(() {
+        selectedParty = null;
         billItems.clear();
-        clearForm();
+        clearInputs();
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bill saved successfully!')),
-      );
-    }).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save bill: $error')),
-      );
-    });
-  }
 
-  void fetchProductDetails(String productName) async {
-    final productRef = FirebaseFirestore.instance
-        .collection('products')
-        .where('title', isEqualTo: productName);
-
-    final snapshot = await productRef.get();
-    if (snapshot.docs.isNotEmpty) {
-      final product = snapshot.docs.first;
-      setState(() {
-        mrp =
-            product.data().containsKey('mrp') ? product['mrp'].toDouble() : 0.0;
-        imgUrl = product.data().containsKey('image_url')
-            ? product['image_url']
-            : null;
-        mrpController.text = mrp.toString();
-      });
-    } else {
-      setState(() {
-        mrp = 0.0;
-        imgUrl = null;
-        mrpController.clear();
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Purchase Bill Saved Successfully'),
+        ),
+      );
     }
   }
 }

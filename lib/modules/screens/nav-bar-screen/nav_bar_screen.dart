@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:malavi_management/modules/screens/product-screen/all_products.dart';
+import 'package:malavi_management/modules/screens/profit-screen/profitScreen.dart';
 
 import '../bill-screen/bill_screen.dart';
 import '../home-screen/home_screen.dart';
@@ -20,7 +21,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
     const HomeScreen(),
     const AllProducts(),
     const BillScreen(),
-    const ProfileScreen(),
+    const ProfitScreen(),
   ];
 
   @override
@@ -43,8 +44,12 @@ class _NavBarScreenState extends State<NavBarScreen> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Product'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Bill'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_bag), label: 'Product'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet), label: 'Bill'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.attach_money), label: 'Profit'),
         ],
       ),
     );

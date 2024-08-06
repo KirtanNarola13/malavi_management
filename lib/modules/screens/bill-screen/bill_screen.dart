@@ -15,7 +15,7 @@ class BillScreen extends StatefulWidget {
 
 class _BillScreenState extends State<BillScreen> {
   final CollectionReference sellBillsCollection =
-  FirebaseFirestore.instance.collection('sellBills');
+      FirebaseFirestore.instance.collection('sellBills');
 
   Future<void> _deleteBill(String billId) async {
     await FirebaseFirestore.instance
@@ -30,7 +30,7 @@ class _BillScreenState extends State<BillScreen> {
       appBar: AppBar(
         title: const Text('Bill'),
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<QuerySnapshot>(
         stream: sellBillsCollection.snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
@@ -43,8 +43,8 @@ class _BillScreenState extends State<BillScreen> {
           return ListView.builder(
             itemCount: bills.length,
             itemBuilder: (context, index) {
-              final bill = bills[index];
-              final items = bill['items'] as List;
+              final bill = bills[index].data() as Map<String, dynamic>;
+              final items = bill['items'] as List<dynamic>;
 
               return Card(
                 margin: const EdgeInsets.all(15),
@@ -79,12 +79,13 @@ class _BillScreenState extends State<BillScreen> {
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditBillScreen(bill: bill),
-                                ),
-                              );
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) =>
+                              //         EditBillScreen(bill: bill),
+                              //   ),
+                              // );
                             },
                           ),
                           IconButton(
@@ -94,14 +95,17 @@ class _BillScreenState extends State<BillScreen> {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Delete Bill'),
-                                  content: const Text('Are you sure you want to delete this bill?'),
+                                  content: const Text(
+                                      'Are you sure you want to delete this bill?'),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
                                       child: const Text('Delete'),
                                     ),
                                   ],
@@ -109,7 +113,7 @@ class _BillScreenState extends State<BillScreen> {
                               );
 
                               if (shouldDelete == true) {
-                                await _deleteBill(bill.id);
+                                await _deleteBill(bills[index].id);
                               }
                             },
                           ),
@@ -126,7 +130,7 @@ class _BillScreenState extends State<BillScreen> {
     );
   }
 
-  Future<pw.Document> generatePdf(QueryDocumentSnapshot bill) async {
+  Future<pw.Document> generatePdf(Map<String, dynamic> bill) async {
     final pdf = pw.Document();
 
     pw.Widget buildCell(String text, {bool isHeader = false}) {
@@ -149,15 +153,33 @@ class _BillScreenState extends State<BillScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('PURVA SALES', style: const pw.TextStyle(fontSize: 24)),
-              pw.SizedBox(height: 20),
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Invoice number: ${bill['billNumber']}',
-                      style: const pw.TextStyle(fontSize: 18)),
-                  pw.Text('Date of issue: ${bill['date']}',
-                      style: const pw.TextStyle(fontSize: 18)),
+                  pw.Column(children: [
+                    pw.Text(
+                      '${bill['party_name']}',
+                      style: const pw.TextStyle(fontSize: 24),
+                    ),
+                  ]),
+                  pw.Column(
+                    children: [
+                      pw.Text(
+                        'PURVA SALES',
+                        style: const pw.TextStyle(fontSize: 24),
+                      ),
+                      pw.SizedBox(height: 20),
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Invoice number: ${bill['billNumber']}',
+                              style: const pw.TextStyle(fontSize: 18)),
+                          pw.Text('Date of issue: ${bill['date']}',
+                              style: const pw.TextStyle(fontSize: 18)),
+                        ],
+                      ),
+                    ],
+                  )
                 ],
               ),
               pw.SizedBox(
@@ -186,8 +208,9 @@ class _BillScreenState extends State<BillScreen> {
                       buildCell('Amount', isHeader: true),
                     ],
                   ),
-                  ...((bill['items'] as List).map((item) {
-                    String formattedAmount = item['netAmount'].toStringAsFixed(2);
+                  ...((bill['items'] as List<dynamic>).map((item) {
+                    String formattedAmount =
+                        item['netAmount'].toStringAsFixed(2);
                     String formattedPrice = item['saleRate'].toStringAsFixed(2);
 
                     return pw.TableRow(

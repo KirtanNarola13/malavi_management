@@ -161,9 +161,7 @@ class _ProductEditPurchaseBillHistoryState
       minWidth: double.infinity,
       height: 60,
       onPressed: () {
-        if (validateInputs()) {
-          updateProductDetails();
-        }
+        updateProductDetails();
       },
       shape: RoundedRectangleBorder(
         side: const BorderSide(
@@ -179,19 +177,6 @@ class _ProductEditPurchaseBillHistoryState
         ),
       ),
     );
-  }
-
-  bool validateInputs() {
-    if (quantity == null ||
-        mrp == null ||
-        saleRate == null ||
-        purchaseRate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in all fields correctly.')),
-      );
-      return false;
-    }
-    return true;
   }
 
   void calculateTotalAmount() {

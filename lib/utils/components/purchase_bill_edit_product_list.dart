@@ -21,13 +21,10 @@ class _PurchaseBillEditProductListState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
-        // Check if arguments are not null and cast them correctly
         final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
         if (arguments != null) {
           bill = arguments;
-          bill['billItems'] =
-              bill['billItems'] ?? []; // Ensure billItems is initialized
-
+          bill['billItems'] = bill['billItems'] ?? [];
           if (updatedProduct.isNotEmpty) {
             for (var product in bill['billItems']) {
               if (updatedProduct['productName'] == product['productName']) {
@@ -47,7 +44,7 @@ class _PurchaseBillEditProductListState
   }
 
   void updateGrandTotal() {
-    grandTotal = 0.0; // Reset grand total
+    grandTotal = 0.0;
     for (var item in bill['billItems']) {
       grandTotal += item['totalAmount'];
     }
@@ -65,15 +62,13 @@ class _PurchaseBillEditProductListState
       DocumentReference billRef =
           FirebaseFirestore.instance.collection('pendingBills').doc(billId);
 
-      // Check if document exists
       DocumentSnapshot docSnapshot = await billRef.get();
-      print("Checking for document with ID: $billId");
       if (docSnapshot.exists) {
         await billRef.update({
           'billItems': bill['billItems'],
           'grandTotal': bill['grandTotal'],
         });
-        Navigator.pop(context); // Navigate back after updating
+        Navigator.pop(context);
       } else {
         print("Document with ID $billId does not exist.");
       }
@@ -98,7 +93,7 @@ class _PurchaseBillEditProductListState
         ],
       ),
       body: bill['billItems'] == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: bill['billItems'].length,
               itemBuilder: (context, index) {
@@ -116,7 +111,7 @@ class _PurchaseBillEditProductListState
                               'productEditScreenPurchaseBillHistory',
                               arguments: {
                                 ...billItem,
-                                'billId': bill['billId'], // Pass bill ID
+                                'billId': bill['billId'],
                                 'grandTotal': bill['grandTotal'],
                               });
                           setState(() {

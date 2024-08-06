@@ -11,11 +11,13 @@ class SellBillScreen extends StatefulWidget {
 class _SellBillScreenState extends State<SellBillScreen> {
   String? selectedParty;
   String? selectedProduct;
+  String partyAddress = "";
   String? selectedPartyProduct;
   String? salesMan;
   double? mrp;
   double? marginPercentage;
   double? saleRate;
+  double? purchaseRate;
   int? quantity;
   int? freeQuantity;
   double? amount;
@@ -197,6 +199,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                           mrpController.text = selectedDoc['mrp'].toString();
                           marginController.text =
                               selectedDoc['margin'].toString();
+                          purchaseRate = selectedDoc['purchaseRate'];
                           saleRateController.text =
                               selectedDoc['saleRate'].toString();
                           fetchProductDetails(selectedProduct!);
@@ -453,6 +456,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
         mrp = doc['mrp'];
         marginPercentage = doc['margin'];
         saleRate = doc['saleRate'];
+        purchaseRate = doc['purchaseRate'];
       });
       mrpController.text = mrp.toString();
       marginController.text = marginPercentage.toString();
@@ -468,7 +472,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
 
   void calculateMargin() {
     double minusAmount;
-    minusAmount = mrp! - saleRate!;
+    minusAmount = mrp ?? 00 - saleRate!;
     marginPercentage = (minusAmount / mrp!) * 100;
     marginController.text = marginPercentage?.toStringAsFixed(3) ?? '';
   }
@@ -496,6 +500,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
           'mrp': mrp,
           'margin': marginPercentage,
           'saleRate': saleRate,
+          'purchaseRate': purchaseRate,
           'amount': amount,
           'discount': discount,
           'netAmount': netAmount,
@@ -544,6 +549,61 @@ class _SellBillScreenState extends State<SellBillScreen> {
       List<Map<String, dynamic>> itemsToSave = [];
 
       for (var item in billItems) {
+        // Query the productStock collection to get the document ID
+        FirebaseFirestore.instance
+            .collection('productStock')
+            .where('productName', isEqualTo: item['productName'])
+            .get()
+            .then((querySnapshot) {
+          if (querySnapshot.docs.isNotEmpty) {
+            // Get the first matching document
+            var doc = querySnapshot.docs.first;
+            String referenceId = doc.id;
+
+            // Update the quantity for the document in the purchaseHistory subcollection
+            FirebaseFirestore.instance
+                .collection('productStock')
+                .doc(referenceId)
+                .collection('purchaseHistory')
+                .where('partyName', isEqualTo: selectedPartyProduct)
+                .get()
+                .then((subQuerySnapshot) {
+              if (subQuerySnapshot.docs.isNotEmpty) {
+                // Get the first matching document in the subcollection
+                var subDoc = subQuerySnapshot.docs.first;
+
+                // Update the quantity
+                subDoc.reference.update({
+                  'quantity':
+                      FieldValue.increment(-(freeQuantity! + quantity!)),
+                }).then((_) {
+                  print(
+                      'Stock updated successfully for product: ${item['productName']} with quantity: ${item['quantity']}');
+                }).catchError((error) {
+                  // Handle errors in updating
+                  print('Error updating quantity: $error');
+                });
+              } else {
+                // Handle case where no matching document is found in the subcollection
+                print(
+                    'No matching document found for product: ${item['productName']} in purchaseHistory');
+              }
+            }).catchError((error) {
+              // Handle errors in querying the subcollection
+              print('Error fetching purchase history: $error');
+            });
+          } else {
+            // Handle case where no matching document is found in the main collection
+            print(
+                'No matching document found for product: ${item['productName']}');
+          }
+        }).catchError((error) {
+          // Handle errors in querying the main collection
+          print('Error fetching product stock: $error');
+        });
+      }
+
+      for (var item in billItems) {
         grandTotal += item['netAmount'];
         itemsToSave.add({
           'partyName': item['partyName'],
@@ -554,6 +614,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
           'mrp': item['mrp'],
           'margin': item['margin'],
           'saleRate': item['saleRate'],
+          'purchaseRate': item['purchaseRate'],
           'amount': item['amount'],
           'discount': item['discount'],
           'netAmount': item['netAmount'],

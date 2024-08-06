@@ -290,8 +290,11 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                               child: const Text('Delete'),
                             ),
                             TextButton(
-                              onPressed: () => editBill(bill.id,
-                                  bill['billItems'], bill['grandTotal']),
+                              onPressed: () {
+                                log("${bill.id}");
+                                editBill(bill.id, bill['billItems'],
+                                    bill['grandTotal']);
+                              },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.blue,
                               ),
