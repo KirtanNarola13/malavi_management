@@ -8,7 +8,9 @@ import '../home-screen/home_screen.dart';
 import '../profile-screen/profile_screen.dart';
 
 class NavBarScreen extends StatefulWidget {
-  const NavBarScreen({super.key});
+  final int initialIndex;
+
+  const NavBarScreen({super.key, this.initialIndex = 0});
 
   @override
   State<NavBarScreen> createState() => _NavBarScreenState();
@@ -23,6 +25,12 @@ class _NavBarScreenState extends State<NavBarScreen> {
     const BillScreen(),
     const ProfitScreen(),
   ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    currentIndex = widget.initialIndex; // Set the initial index
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -24,6 +26,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
   double? discount;
   double? netAmount;
   List<Map<String, dynamic>> billItems = [];
+
+  int? editingIndex;
   String? billNumber; // Add this field to store the bill number
 
   final amountController = TextEditingController();
@@ -72,6 +76,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     onChanged: (value) {
                       setState(() {
                         salesMan = value!;
+                        log("${salesMan}");
                       });
                     },
                   );
@@ -94,7 +99,16 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     items: snapshot.data!.docs.map((doc) {
                       return DropdownMenuItem<String>(
                         value: doc['account_name'],
-                        child: Text(doc['account_name']),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${doc['account_name']} |\n ${doc['address']}",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Divider(),
+                          ],
+                        ),
                       );
                     }).toList(),
                     decoration: InputDecoration(
@@ -106,6 +120,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     onChanged: (value) {
                       setState(() {
                         selectedParty = value!;
+                        fetchPartyDetail(selectedParty!);
                       });
                     },
                   );
@@ -126,36 +141,49 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     return const Text('No products found');
                   }
 
-                  List<DropdownMenuItem<String>> items =
+                  List<Map<String, dynamic>> items =
                       snapshot.data!.docs.map((doc) {
-                    return DropdownMenuItem<String>(
-                      value: doc.id,
-                      child: Text(
-                          "${doc['productName']} | Stock ${doc['totalStock']}"),
-                    );
+                    return {
+                      'id': doc.id,
+                      'label':
+                          "${doc['productName']} | Stock ${doc['totalStock']}",
+                    };
                   }).toList();
 
                   // Check if the selectedProduct is in the list of items
                   if (selectedProduct != null &&
-                      !items.any((item) => item.value == selectedProduct)) {
+                      !items.any((item) => item['id'] == selectedProduct)) {
                     selectedProduct = null; // or set it to a default value
                   }
 
-                  return DropdownButtonFormField<String>(
-                    value: selectedProduct,
-                    items: items,
-                    decoration: InputDecoration(
-                      labelText: 'Select Product',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: (value) {
+                  return DropdownSearch<String>(
+                    items:
+                        items.map((item) => item['label'] as String).toList(),
+                    selectedItem: selectedProduct != null
+                        ? items.firstWhere(
+                            (item) => item['id'] == selectedProduct)['label']
+                        : null,
+                    onChanged: (String? newValue) {
                       setState(() {
-                        selectedProduct = value;
-                        fetchProductDetails(selectedProduct!);
+                        selectedProduct = items.firstWhere(
+                            (item) => item['label'] == newValue)['id'];
+                        selectedPartyProduct = null;
                       });
                     },
+                    popupProps: PopupProps.menu(
+                      showSearchBox: true,
+                    ),
+                    dropdownDecoratorProps: DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: 'Select Product',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    clearButtonProps: ClearButtonProps(
+                      isVisible: true,
+                    ),
                   );
                 },
               ),
@@ -192,19 +220,12 @@ class _SellBillScreenState extends State<SellBillScreen> {
                         ),
                       ),
                       onChanged: (value) {
-                        var selectedDoc = snapshot.data!.docs
-                            .firstWhere((doc) => doc.id == value);
                         setState(() {
                           selectedPartyProduct = value!;
-                          mrpController.text = selectedDoc['mrp'].toString();
-                          marginController.text =
-                              selectedDoc['margin'].toString();
-                          purchaseRate = selectedDoc['purchaseRate'];
-                          saleRateController.text =
-                              selectedDoc['saleRate'].toString();
-                          fetchProductDetails(selectedProduct!);
-                          calculateAmount();
                         });
+
+                        // Fetch product details when a party product is selected
+                        fetchProductDetails(selectedProduct!, value!);
                       },
                     );
                   },
@@ -360,7 +381,9 @@ class _SellBillScreenState extends State<SellBillScreen> {
               // Add Product Button
               Center(
                 child: ElevatedButton(
-                  onPressed: addProductToBill,
+                  onPressed: editingIndex == null
+                      ? addProductToBill
+                      : updateProductInBill,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.yellow[700],
                     padding: const EdgeInsets.symmetric(
@@ -368,12 +391,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       vertical: 10,
                     ),
                   ),
-                  child: const Text(
-                    'Add Product',
-                    style: TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
+                  child: Text(
+                      editingIndex == null ? 'Add Product' : 'Update Product'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -403,13 +422,26 @@ class _SellBillScreenState extends State<SellBillScreen> {
                           return ListTile(
                             title: Text(item['productName']),
                             subtitle: Text('Quantity: ${item['quantity']}'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                setState(() {
-                                  billItems.removeAt(index);
-                                });
-                              },
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () {
+                                    setState(() {
+                                      editProduct(index);
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                      billItems.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -446,35 +478,86 @@ class _SellBillScreenState extends State<SellBillScreen> {
     );
   }
 
-  Future<void> fetchProductDetails(String productName) async {
-    final doc = await FirebaseFirestore.instance
+  Future<void> fetchProductDetails(
+      String productName, String partyProductId) async {
+    final productDoc = await FirebaseFirestore.instance
         .collection('productStock')
         .doc(productName)
         .get();
-    if (doc.exists) {
+
+    if (productDoc.exists) {
+      final partyProductDoc = await FirebaseFirestore.instance
+          .collection('productStock')
+          .doc(productName)
+          .collection('purchaseHistory')
+          .doc(partyProductId)
+          .get();
+
+      if (partyProductDoc.exists) {
+        setState(() {
+          mrpController.text = partyProductDoc['mrp'].toString();
+          marginController.text = partyProductDoc['margin'].toString();
+          saleRateController.text = partyProductDoc['saleRate'].toString();
+          purchaseRate = partyProductDoc['purchaseRate'];
+        });
+
+        mrp = double.parse(mrpController.text);
+        marginPercentage = double.parse(marginController.text);
+        saleRate = double.parse(saleRateController.text);
+        calculateAmount();
+      } else {
+        // Handle the case where the party product document does not exist
+        print('Party product document does not exist');
+      }
+    } else {
+      // Handle the case where the main product document does not exist
+      print('Product document does not exist');
+    }
+  }
+
+  Future<void> fetchPartyDetail(String partyName) async {
+    try {
+      // Query the collection to fetch all documents
+      var querySnapshot = await FirebaseFirestore.instance
+          .collection('sale party account')
+          .get();
+
+      // Loop through all documents to find the one with the matching partyName
+      for (var doc in querySnapshot.docs) {
+        if (doc['account_name'] == partyName) {
+          setState(() {
+            partyAddress = doc['address'] ??
+                'No address available'; // Handle missing address field
+            log(partyAddress);
+          });
+          return; // Exit the function once the matching document is found
+        }
+      }
+
+      // If no matching document is found
       setState(() {
-        mrp = doc['mrp'];
-        marginPercentage = doc['margin'];
-        saleRate = doc['saleRate'];
-        purchaseRate = doc['purchaseRate'];
+        partyAddress = 'No party found'; // Handle case where no documents match
       });
-      mrpController.text = mrp.toString();
-      marginController.text = marginPercentage.toString();
-      saleRateController.text = saleRate.toString();
-      calculateAmount();
+    } catch (e) {
+      print('Error fetching party details: $e');
+      setState(() {
+        partyAddress = 'Error fetching details'; // Handle potential errors
+      });
     }
   }
 
   void calculateSaleRate() {
-    saleRate = mrp! - (mrp! * marginPercentage! / 100);
-    saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
+    if (mrp != null && marginPercentage != null) {
+      saleRate = (mrp! / marginPercentage!);
+      saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
+    }
   }
 
   void calculateMargin() {
-    double minusAmount;
-    minusAmount = mrp ?? 00 - saleRate!;
-    marginPercentage = (minusAmount / mrp!) * 100;
-    marginController.text = marginPercentage?.toStringAsFixed(3) ?? '';
+    if (mrp != null && saleRate != null) {
+      marginPercentage = mrp! / saleRate!;
+      marginController.text = marginPercentage?.toStringAsFixed(3) ?? '';
+    }
   }
 
   void calculateAmount() {
@@ -484,9 +567,22 @@ class _SellBillScreenState extends State<SellBillScreen> {
   }
 
   void calculateNetAmount() {
-    netAmount =
-        amount! - (amount! * ((discount == null) ? 0 : discount! / 100));
+    double discountPercentage = double.tryParse(discountController.text) ?? 0.0;
+    double calculatedDiscount = amount! * (discountPercentage / 100);
+    netAmount = amount! - calculatedDiscount;
     netAmountController.text = netAmount!.toStringAsFixed(2);
+  }
+
+  void clearFeild() {
+    selectedProduct = null;
+    quantity = null;
+    amount = null;
+    discount = null;
+    netAmount = null;
+    amountController.clear();
+    discountController.clear();
+    netAmountController.clear();
+    freeQuantityController.clear();
   }
 
   void addProductToBill() {
@@ -494,15 +590,18 @@ class _SellBillScreenState extends State<SellBillScreen> {
       setState(() {
         billItems.add({
           'partyName': selectedParty,
+          'partyAddress': partyAddress,
+          'salesMan': salesMan,
           'productName': selectedProduct,
+          'partyProduct': selectedPartyProduct,
           'quantity': quantity,
           'freeQuantity': freeQuantityController.text,
-          'mrp': mrp,
-          'margin': marginPercentage,
+          'mrp': mrpController.text,
+          'margin': marginController.text,
           'saleRate': saleRate,
           'purchaseRate': purchaseRate,
           'amount': amount,
-          'discount': discount,
+          'discount': discountController.text,
           'netAmount': netAmount,
           'date':
               "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
@@ -511,7 +610,6 @@ class _SellBillScreenState extends State<SellBillScreen> {
         amount = null;
         discount = null;
         netAmount = null;
-        salesMan = null;
         amountController.clear();
         discountController.clear();
         netAmountController.clear();
@@ -522,6 +620,73 @@ class _SellBillScreenState extends State<SellBillScreen> {
         const SnackBar(content: Text('Please complete the product details')),
       );
     }
+  }
+
+  void editProduct(int index) {
+    final item = billItems[index];
+
+    setState(() {
+      salesMan = item['salesMan'] as String?;
+      selectedParty = item['partyName'] as String?;
+      selectedProduct = item['productName'] as String?;
+      selectedPartyProduct = item['partyProduct'] as String?;
+      quantity = item['quantity'] as int?;
+      freeQuantity = item['freeQuantity'] != null
+          ? int.tryParse(item['freeQuantity'].toString())
+          : null;
+      mrp =
+          item['mrp'] != null ? double.tryParse(item['mrp'].toString()) : null;
+      marginPercentage = item['margin'] != null
+          ? double.tryParse(item['margin'].toString())
+          : null;
+      saleRate = item['saleRate'] != null
+          ? double.tryParse(item['saleRate'].toString())
+          : null;
+      amount = item['amount'] != null
+          ? double.tryParse(item['amount'].toString())
+          : null;
+      discount = item['discount'] != null
+          ? double.tryParse(item['discount'].toString())
+          : null;
+      netAmount = item['netAmount'] != null
+          ? double.tryParse(item['netAmount'].toString())
+          : null;
+
+      // Update text controllers if values are not null
+      amountController.text = amount?.toString() ?? '';
+      freeQuantityController.text = freeQuantity?.toString() ?? '';
+      marginController.text = marginPercentage?.toString() ?? '';
+      discountController.text = discount?.toString() ?? '';
+      netAmountController.text = netAmount?.toString() ?? '';
+      saleRateController.text = saleRate?.toString() ?? '';
+      mrpController.text = mrp?.toString() ?? '';
+
+      editingIndex = index;
+    });
+  }
+
+  void updateProductInBill() {
+    final product = {
+      'partyName': selectedParty,
+      'partyAddress': partyAddress,
+      'salesMan': salesMan,
+      'productName': selectedProduct,
+      'partyProduct': selectedPartyProduct,
+      'quantity': quantity,
+      'freeQuantity': freeQuantityController.text,
+      'mrp': mrpController.text,
+      'margin': marginController.text,
+      'saleRate': saleRate,
+      'purchaseRate': purchaseRate,
+      'amount': amount,
+      'discount': discount,
+      'netAmount': netAmount,
+    };
+    setState(() {
+      billItems[editingIndex!] = product;
+      clearFeild();
+      editingIndex = null;
+    });
   }
 
   Future<void> fetchLastBillNumber() async {
@@ -542,71 +707,60 @@ class _SellBillScreenState extends State<SellBillScreen> {
     }
   }
 
+  int fetchQuantity = 0;
+  int finalQuantity = 0;
+  Future<void> fetchStock(String productName, String partyProductId,
+      int decreementedQuatity) async {
+    final productDoc = await FirebaseFirestore.instance
+        .collection('productStock')
+        .doc(productName)
+        .get();
+
+    if (productDoc.exists) {
+      final partyProductDoc = await FirebaseFirestore.instance
+          .collection('productStock')
+          .doc(productName)
+          .collection('purchaseHistory')
+          .doc(partyProductId)
+          .get();
+
+      if (partyProductDoc.exists) {
+        setState(() {
+          finalQuantity = partyProductDoc['quantity'] - decreementedQuatity;
+        });
+        await FirebaseFirestore.instance
+            .collection('productStock')
+            .doc(productName)
+            .collection('purchaseHistory')
+            .doc(partyProductId)
+            .update({'quantity': finalQuantity});
+      } else {
+        // Handle the case where the party product document does not exist
+        print('Party product document does not exist');
+      }
+    } else {
+      // Handle the case where the main product document does not exist
+      print('Product document does not exist');
+    }
+  }
+
   void saveSellBill() async {
+    log(partyAddress);
     if (billItems.isNotEmpty) {
       await fetchLastBillNumber(); // Fetch the last bill number and generate a new one
       double grandTotal = 0;
+      int _dQuantity = 0;
       List<Map<String, dynamic>> itemsToSave = [];
-
-      for (var item in billItems) {
-        // Query the productStock collection to get the document ID
-        FirebaseFirestore.instance
-            .collection('productStock')
-            .where('productName', isEqualTo: item['productName'])
-            .get()
-            .then((querySnapshot) {
-          if (querySnapshot.docs.isNotEmpty) {
-            // Get the first matching document
-            var doc = querySnapshot.docs.first;
-            String referenceId = doc.id;
-
-            // Update the quantity for the document in the purchaseHistory subcollection
-            FirebaseFirestore.instance
-                .collection('productStock')
-                .doc(referenceId)
-                .collection('purchaseHistory')
-                .where('partyName', isEqualTo: selectedPartyProduct)
-                .get()
-                .then((subQuerySnapshot) {
-              if (subQuerySnapshot.docs.isNotEmpty) {
-                // Get the first matching document in the subcollection
-                var subDoc = subQuerySnapshot.docs.first;
-
-                // Update the quantity
-                subDoc.reference.update({
-                  'quantity':
-                      FieldValue.increment(-(freeQuantity! + quantity!)),
-                }).then((_) {
-                  print(
-                      'Stock updated successfully for product: ${item['productName']} with quantity: ${item['quantity']}');
-                }).catchError((error) {
-                  // Handle errors in updating
-                  print('Error updating quantity: $error');
-                });
-              } else {
-                // Handle case where no matching document is found in the subcollection
-                print(
-                    'No matching document found for product: ${item['productName']} in purchaseHistory');
-              }
-            }).catchError((error) {
-              // Handle errors in querying the subcollection
-              print('Error fetching purchase history: $error');
-            });
-          } else {
-            // Handle case where no matching document is found in the main collection
-            print(
-                'No matching document found for product: ${item['productName']}');
-          }
-        }).catchError((error) {
-          // Handle errors in querying the main collection
-          print('Error fetching product stock: $error');
-        });
-      }
-
       for (var item in billItems) {
         grandTotal += item['netAmount'];
+        int finalFreeQuantity = int.parse(item['freeQuantity'].toString());
+        int finalQuantity = int.parse(item['quantity'].toString());
+        _dQuantity = finalQuantity + finalFreeQuantity;
+
+        await fetchStock(item['productName'], item['partyProduct'], _dQuantity);
         itemsToSave.add({
           'partyName': item['partyName'],
+          'partyAddress': item['partyAddress'],
           'productName': item['productName'],
           'salesMan': item['salesMan'],
           'quantity': item['quantity'],
@@ -626,11 +780,15 @@ class _SellBillScreenState extends State<SellBillScreen> {
       await FirebaseFirestore.instance.collection('sellBills').add({
         'billNumber': billNumber,
         'grandTotal': grandTotal,
-        'items': itemsToSave,
         'salesMan': salesMan,
         'date':
             "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
         'party_name': selectedParty,
+        'paymentStatus': 'pending',
+        'partyAddress': partyAddress,
+        'items': itemsToSave,
+      }).then((_) {
+        salesMan == null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

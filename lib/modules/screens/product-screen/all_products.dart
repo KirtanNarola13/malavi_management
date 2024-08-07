@@ -44,6 +44,7 @@ class _AllProductsState extends State<AllProducts> {
 
   List _allResult = [];
   List _resultList = [];
+  bool? result;
 
   Future<void> getAllProducts() async {
     var data = await FirebaseFirestore.instance.collection('products').get();
@@ -78,6 +79,9 @@ class _AllProductsState extends State<AllProducts> {
   @override
   void initState() {
     searchController.addListener(_onSearchChanged);
+    if (result != false) {
+      setState(() {});
+    }
     super.initState();
     getAllProducts();
   }
@@ -160,7 +164,6 @@ class _AllProductsState extends State<AllProducts> {
                 return ListView.builder(
                   itemCount: _resultList.length,
                   itemBuilder: (context, index) {
-                    var product = _resultList[index];
                     return Padding(
                       padding: const EdgeInsets.all(
                         8.0,
@@ -177,18 +180,20 @@ class _AllProductsState extends State<AllProducts> {
                               radius: 30,
                               backgroundColor: Colors.white,
                               backgroundImage: NetworkImage(
-                                product['image_url'],
+                                _resultList[index]['image_url'],
                               ),
                             ),
-                            title: Text(product['title'] ?? 'No title'),
-                            subtitle: Text("Category: ${product['category']}"),
+                            title:
+                                Text(_resultList[index]['title'] ?? 'No title'),
+                            subtitle: Text(
+                                "Category: ${_resultList[index]['category']}"),
                             children: [
                               ListTile(
                                 title: Text(
-                                  "Company : ${product['company'] ?? 'No company'}",
+                                  "Company : ${_resultList[index]['company'] ?? 'No company'}",
                                 ),
                                 subtitle: Text(
-                                  "Unit : ${product['units'] ?? 'No units'}",
+                                  "Unit : ${_resultList[index]['units'] ?? 'No units'}",
                                 ),
                               ),
                               ButtonBar(
@@ -199,14 +204,19 @@ class _AllProductsState extends State<AllProducts> {
                                       bool? result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditProduct(product: product),
+                                          builder: (context) => EditProduct(
+                                            product: {
+                                              'title': _resultList[index]
+                                                  ['title'],
+                                              'company': _resultList[index]
+                                                  ['company'],
+                                              'category': _resultList[index]
+                                                  ['category'],
+                                            },
+                                          ),
                                         ),
                                       );
-                                      if (result == true) {
-                                        // Refresh the list after editing
-                                        setState(() {});
-                                      }
+                                      result == false;
                                     },
                                     icon: const Icon(
                                       Icons.edit,
@@ -247,7 +257,7 @@ class _AllProductsState extends State<AllProducts> {
                                               onPressed: () {
                                                 Navigator.pop(context);
                                                 _deleteProduct(
-                                                  product['id'],
+                                                  _resultList[index]['id'],
                                                 );
                                               },
                                               child: const Text(

@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:malavi_management/modules/screens/bill-screen/bill_product_edit.dart';
 import 'package:malavi_management/modules/screens/nav-bar-screen/nav_bar_screen.dart';
 import 'package:malavi_management/utils/components/product_edit_purchase_bill_history.dart';
 import 'package:malavi_management/utils/helpers/auth_helper.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
       routes: {
         'productEditScreenPurchaseBillHistory': (context) =>
             ProductEditPurchaseBillHistory(),
+        'saleBillProductEdit': (context) => BillProductEdit(),
       },
     ),
   );

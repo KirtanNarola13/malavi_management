@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -438,8 +440,58 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
     grandTotalController.text = grandTotal.toString();
   }
 
+  Future<String> _generateBillNumber() async {
+    final billsRef = FirebaseFirestore.instance.collection('pendingBills');
+    final querySnapshot =
+        await billsRef.orderBy('billNumber', descending: true).limit(1).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      final lastBillDoc = querySnapshot.docs.first;
+      final lastBillNumber = lastBillDoc['billNumber'] as String;
+
+      // Extract the numeric part and increment it
+      final lastNumber = int.parse(lastBillNumber.substring(2));
+      final newNumber = lastNumber + 1;
+
+      return 'A${newNumber.toString().padLeft(2, '0')}';
+    } else {
+      // Start from 'A01' if no previous bill exists
+      return 'A01';
+    }
+  }
+
+  String companyName = '';
+  String categoryName = '';
+
+  Future<void> fetchProductDetails(String productName) async {
+    try {
+      final productQuery = await FirebaseFirestore.instance
+          .collection('products')
+          .where('title', isEqualTo: productName)
+          .get();
+
+      if (productQuery.docs.isNotEmpty) {
+        final productDoc = productQuery.docs.first;
+
+        setState(() {
+          companyName = productDoc['company'] ?? '';
+          categoryName = productDoc['category'] ?? '';
+          log("Company: ${companyName}  Category: ${categoryName}");
+        });
+      } else {
+        // Handle the case where the product document does not exist
+        print('Product document does not exist');
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error fetching product details: $e');
+    }
+  }
+
   void savePurchaseBill() async {
     if (selectedParty != null && billItems.isNotEmpty) {
+      final newBillNumber = await _generateBillNumber();
+
       double totalAmount = 0;
       for (final item in billItems) {
         totalAmount += item['totalAmount'];
@@ -452,14 +504,16 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
       final newBillRef = pendingBillsRef.doc();
       await newBillRef.set({
+        'billNumber': newBillNumber, // Add bill number here
         'partyName': selectedParty!,
         'billItems': billItems,
+
         'paymentStatus': 'Pending',
         'grandTotal': grandTotal.toString(),
         'createdAt': Timestamp.now(),
       });
 
-      // Loop through each item in the bill
+      // Continue with updating the product stock and purchase history as before
       for (final item in billItems) {
         final productName = item['productName'];
         final quantity = item['quantity'];
@@ -479,14 +533,16 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
         double totalStock = 0.0;
         for (final doc in purchaseHistorySnapshot.docs) {
-          final quantity = doc['quantity'] as double;
+          final quantity = doc['quantity'] as int;
           totalStock += quantity;
         }
-
+        fetchProductDetails(productName);
         // Update product stock
         await productDocRef.set({
           'productName': productName,
           'image_url': image,
+          'companyName': companyName,
+          'categoryName': categoryName,
           'totalStock':
               totalStock + quantity, // Add the new quantity to the total stock
           'date': Timestamp.now(),

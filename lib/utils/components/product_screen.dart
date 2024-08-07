@@ -79,7 +79,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
         final imageUrl = await imageRef.getDownloadURL();
 
         // Save data to Firestore
-        await FirebaseFirestore.instance.collection('products').add(
+        await FirebaseFirestore.instance
+            .collection('products')
+            .doc(_titleController.text) // Set the document ID to the title
+            .set(
           {
             'title': _titleController.text,
             'units': _units,

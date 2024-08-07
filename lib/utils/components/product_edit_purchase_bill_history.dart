@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:malavi_management/utils/const.dart';
 
 class ProductEditPurchaseBillHistory extends StatefulWidget {
   const ProductEditPurchaseBillHistory({super.key});
@@ -61,6 +60,8 @@ class _ProductEditPurchaseBillHistoryState
                   quantity = int.tryParse(value);
                   calculateTotalAmount();
                 });
+
+                calculateTotalAmount();
               },
               controller2: mrpController,
               labelText2: 'MRP',
@@ -68,7 +69,6 @@ class _ProductEditPurchaseBillHistoryState
                 setState(() {
                   mrp = double.tryParse(value);
                   calculateSaleRate();
-                  calculateTotalAmount();
                 });
               },
             ),
@@ -180,41 +180,35 @@ class _ProductEditPurchaseBillHistoryState
   }
 
   void calculateTotalAmount() {
-    if (quantity != null && purchaseRate != null) {
-      setState(() {
-        totalAmount = (quantity ?? 0) * (purchaseRate ?? 0.0);
-        totalAmountController.text = totalAmount?.toStringAsFixed(2) ?? '';
-      });
-    }
+    setState(() {
+      totalAmount = (int.parse(quantityController.text) ?? 0) *
+          (double.parse(purchaseRateController.text) ?? 0.0);
+      totalAmountController.text = totalAmount.toString();
+    });
   }
 
   void calculateSaleRate() {
-    if (mrp != null && margin != null) {
-      saleRate = mrp! - (mrp! * margin! / 100);
-      saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
-    }
+    saleRate = (double.parse(mrpController.text) /
+        double.parse(marginController.text));
+    saleRateController.text = saleRate?.toStringAsFixed(2) ?? '';
   }
 
   void calculateMargin() {
-    double minusAmount;
-    if (mrp != null && saleRate != null) {
-      minusAmount = mrp! - saleRate!;
-      margin = (minusAmount / mrp!) * 100;
-      marginController.text = margin?.toStringAsFixed(3) ?? '';
-    }
+    margin = mrp! / saleRate!;
+    marginController.text = margin?.toStringAsFixed(2) ?? '';
   }
 
   void updateProductDetails() async {
-    updatedProduct = {
+    Map<String, dynamic> updatedProduct = {
       'productName': billItems['productName'],
-      'quantity': quantity,
-      'purchaseRate': purchaseRate,
-      'totalAmount': totalAmount,
-      'margin': margin,
-      'saleRate': saleRate,
-      'mrp': mrp,
+      'quantity': quantityController.text,
+      'purchaseRate': purchaseRateController.text,
+      'totalAmount': totalAmountController.text,
+      'margin': marginController.text,
+      'saleRate': saleRateController.text,
+      'mrp': mrpController.text,
     };
 
-    Navigator.pop(context);
+    Navigator.pop(context, updatedProduct);
   }
 }

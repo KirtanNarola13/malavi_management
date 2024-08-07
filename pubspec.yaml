@@ -39,6 +39,7 @@ dependencies:
   firebase_auth :
   google_sign_in :
   cloud_firestore :
+  dropdown_search :
   animate_do:
   flutter_snake_navigationbar:
   provider:

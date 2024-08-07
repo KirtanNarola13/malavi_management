@@ -1,72 +1,85 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:malavi_management/modules/screens/bill-screen/const.dart';
 
-class EditBillScreen extends StatefulWidget {
-  final QueryDocumentSnapshot bill;
+import '../nav-bar-screen/nav_bar_screen.dart';
 
-  const EditBillScreen({super.key, required this.bill});
+class BillEditScreen extends StatefulWidget {
+  const BillEditScreen({super.key});
 
   @override
-  State<EditBillScreen> createState() => _EditBillScreenState();
+  State<BillEditScreen> createState() => _BillEditScreenState();
 }
 
-class _EditBillScreenState extends State<EditBillScreen> {
-
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _partyNameController;
-  late TextEditingController _dateController;
-  late TextEditingController _billNumberController;
-  late TextEditingController _grandTotalController;
-  late TextEditingController _mrpTotalController;
-  late TextEditingController _netamountController;
-  late TextEditingController _amountController;
+class _BillEditScreenState extends State<BillEditScreen> {
+  Map bill = {};
+  double cashDiscount = 0.0;
+  double grandTotal = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    final bill = widget.bill.data() as Map<String, dynamic>;
-    _partyNameController = TextEditingController(
-      text: bill['party_name'],
-    );
-    _dateController = TextEditingController(
-      text: bill['date'],
-    );
-    _billNumberController = TextEditingController(
-      text: bill['billNumber'],
-    );
-    _mrpTotalController = TextEditingController(
-      text: bill['mrpTotal'].toString(),
-    );
-    _netamountController = TextEditingController(
-      text: bill['netAmount'].toString(),
-    );
-    _amountController = TextEditingController(
-      text: bill['AmountTotal'].toString(),
-    );
-    _grandTotalController = TextEditingController(
-      text: bill['grandTotal'].toString(),
-    );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (arguments != null) {
+      setState(() {
+        bill = arguments;
+        bill['billItems'] = bill['billItems'] ?? [];
+        if (saleBillProduct.isNotEmpty) {
+          for (var product in bill['billItems']) {
+            if (saleBillProduct['productName'] == product['productName']) {
+              bill['billItems'].remove(product);
+              bill['billItems'].add(saleBillProduct);
+              break;
+            }
+          }
+        }
+      });
+    } else {
+      print("No arguments found for this route.");
+    }
   }
 
-  Future<void> _updateBill() async {
-    if (_formKey.currentState!.validate()) {
-      final updatedBill = {
-        'party_name': _partyNameController.text,
-        'date': _dateController.text,
-        'billNumber': _billNumberController.text,
-        'grandTotal': double.parse(_grandTotalController.text),
-        'mrpTotal': double.parse(_mrpTotalController.text),
-        'netAmount': double.parse(_netamountController.text),
-        'AmountTotal': double.parse(_amountController.text),
-        // Update other fields as needed
-      };
+  Future<void> updateBill() async {
+    try {
+      final billId = bill['billDocId'];
+      if (billId == null) {
+        print("billId is null, cannot update document.");
+        return;
+      }
 
-      await FirebaseFirestore.instance
-          .collection('sellBills')
-          .doc(widget.bill.id)
-          .update(updatedBill);
+      // Unfocus any focused text fields
+      FocusScope.of(context).unfocus();
 
-      Navigator.pop((!context.mounted) as BuildContext);
+      DocumentReference billRef =
+          FirebaseFirestore.instance.collection('sellBills').doc(billId);
+
+      DocumentSnapshot docSnapshot = await billRef.get();
+      if (docSnapshot.exists) {
+        updateGrandTotal();
+        log("$billRef bill item : ${bill['billItems']} grandTotal : ${bill['grandTotal']}");
+        await billRef.update({
+          'items': bill['billItems'],
+          'grandTotal': bill['grandTotal'],
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Bill updated successfully.")),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const NavBarScreen(
+              initialIndex: 0,
+            ),
+          ),
+          (route) => false,
+        );
+      } else {
+        print("Document with ID $billId does not exist.");
+      }
+    } catch (e) {
+      print("Error updating document: $e");
     }
   }
 
@@ -74,90 +87,105 @@ class _EditBillScreenState extends State<EditBillScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Edit Bill',
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(
-          16.0,
-        ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _partyNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Party Name',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter party name' : null,
-                ),
-                TextFormField(
-                  controller: _dateController,
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter date' : null,
-                ),
-                TextFormField(
-                  controller: _billNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Bill Number',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter bill number' : null,
-                ),
-                TextFormField(
-                  controller: _mrpTotalController,
-                  decoration: const InputDecoration(
-                    labelText: 'Mrp',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter bill number' : null,
-                ),
-                TextFormField(
-                  controller: _netamountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Net amount',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter bill number' : null,
-                ),
-                TextFormField(
-                  controller: _amountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Amount Total',
-                  ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter bill number' : null,
-                ),
-                TextFormField(
-                  controller: _grandTotalController,
-                  decoration: const InputDecoration(
-                    labelText: 'Grand Total',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter grand total' : null,
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  onPressed: _updateBill,
-                  child: const Text(
-                    'Update Bill',
-                  ),
-                ),
-              ],
-            ),
+        title: const Text('Edit Bill'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              updateBill();
+            },
+            icon: Icon(Icons.save),
           ),
-        ),
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: bill['billItems'].length,
+        itemBuilder: (context, index) {
+          final item = bill['billItems'][index];
+          return Card(
+            margin: const EdgeInsets.all(8.0),
+            child: ListTile(
+              title: Text(item['productName']),
+              subtitle: Text(item['quantity'].toString()),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    onPressed: () async {
+                      final saleBillProduct = await Navigator.of(context)
+                          .pushNamed('saleBillProductEdit', arguments: {
+                        ...item,
+                        'billId': bill['billDocId'],
+                        'grandTotal': bill['grandTotal'],
+                      });
+
+                      if (saleBillProduct != null && saleBillProduct is Map) {
+                        setState(() {
+                          for (var product in bill['billItems']) {
+                            if (saleBillProduct['productName'] ==
+                                product['productName']) {
+                              bill['billItems'].remove(product);
+                              bill['billItems'].add(saleBillProduct);
+                              break;
+                            }
+                          }
+                          updateBill();
+                        });
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      // Confirm the removal
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirm Removal'),
+                          content: const Text(
+                              'Are you sure you want to remove this product?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                removeProduct(index);
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Remove'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  void updateGrandTotal() {
+    grandTotal = 0.0;
+    for (var item in bill['billItems']) {
+      if (item['totalAmount'] != null) {
+        grandTotal += double.parse(item['totalAmount']);
+      }
+    }
+    bill['grandTotal'] = grandTotal.toString();
+  }
+
+  removeProduct(int index) {
+    setState(() {
+      bill['billItems'].removeAt(index);
+      updateBill();
+    });
   }
 }

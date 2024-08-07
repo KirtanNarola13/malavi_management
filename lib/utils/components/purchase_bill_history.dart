@@ -24,8 +24,11 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
   }
 
   Future<void> getAllProducts() async {
-    var data =
-        await FirebaseFirestore.instance.collection('pendingBills').get();
+    var data = await FirebaseFirestore.instance
+        .collection('pendingBills')
+        .orderBy('createdAt',
+            descending: true) // Order by date, most recent first
+        .get();
     setState(() {
       _allResult = data.docs;
     });
@@ -231,6 +234,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                         ThemeData().copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       title: Text('Party: ${bill['partyName']}'),
+                      subtitle: Text(
+                          'Date : ${billDate.day} - ${billDate.month} - ${billDate.year} | bill no ${bill['billNumber']} '),
                       trailing: Text('$daysAgo days ago'),
                       children: [
                         ListTile(
