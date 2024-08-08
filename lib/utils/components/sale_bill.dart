@@ -15,8 +15,11 @@ class _SellBillScreenState extends State<SellBillScreen> {
   String? selectedProduct;
   String partyAddress = "";
   String? selectedPartyProduct;
+  int? selectedQuantity;
   String? salesMan;
+
   double? mrp;
+
   double? marginPercentage;
   double? saleRate;
   double? purchaseRate;
@@ -210,7 +213,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
                       items: snapshot.data!.docs.map((doc) {
                         return DropdownMenuItem<String>(
                           value: doc.id,
-                          child: Text("MRP: ${doc['mrp']}"),
+                          child: Text(
+                              "MRP: ${doc['mrp']} | Stock : ${doc['quantity']} | ${doc['purchaseRate']}"),
                         );
                       }).toList(),
                       decoration: InputDecoration(
@@ -499,6 +503,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
           marginController.text = partyProductDoc['margin'].toString();
           saleRateController.text = partyProductDoc['saleRate'].toString();
           purchaseRate = partyProductDoc['purchaseRate'];
+          selectedQuantity = partyProductDoc['quantity'];
         });
 
         mrp = double.parse(mrpController.text);
@@ -586,7 +591,11 @@ class _SellBillScreenState extends State<SellBillScreen> {
   }
 
   void addProductToBill() {
-    if (selectedProduct != null && quantity != null && netAmount != null) {
+    if (selectedProduct != null &&
+        quantity != null &&
+        netAmount != null &&
+        saleRate! >= purchaseRate! &&
+        (selectedQuantity ?? 0) > 0) {
       setState(() {
         billItems.add({
           'partyName': selectedParty,
@@ -783,7 +792,10 @@ class _SellBillScreenState extends State<SellBillScreen> {
         'salesMan': salesMan,
         'date':
             "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+        'timeStamp': DateTime.now(),
         'party_name': selectedParty,
+        'kasar': 0,
+        'cashDiscount': 0.0,
         'paymentStatus': 'pending',
         'partyAddress': partyAddress,
         'items': itemsToSave,

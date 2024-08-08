@@ -51,7 +51,8 @@ class _PurchaseBillEditProductListState
     grandTotal = 0.0;
     for (var item in bill['billItems']) {
       if (item['totalAmount'] != null) {
-        grandTotal += double.parse(item['totalAmount']);
+        grandTotal +=
+            double.tryParse(item['totalAmount']?.toString() ?? '0.0') ?? 0.0;
       }
     }
     bill['grandTotal'] = grandTotal.toString();
@@ -102,7 +103,6 @@ class _PurchaseBillEditProductListState
     setState(() {
       bill['billItems'].removeAt(index);
       updateGrandTotal();
-      updateBill();
     });
   }
 

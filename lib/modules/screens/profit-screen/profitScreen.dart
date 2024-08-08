@@ -33,8 +33,11 @@ class _ProfitScreenState extends State<ProfitScreen> {
   }
 
   Future<void> searchResultList() async {
-    // Fetch all data from Firestore
-    var data = await FirebaseFirestore.instance.collection('sellBills').get();
+    // Fetch all data from Firestore and order by date
+    var data = await FirebaseFirestore.instance
+        .collection('sellBills')
+        .orderBy('date', descending: true) // Add ordering by date
+        .get();
     var allResults = data.docs;
 
     var showResult = [];
@@ -97,7 +100,10 @@ class _ProfitScreenState extends State<ProfitScreen> {
               ),
             ),
             FutureBuilder<QuerySnapshot>(
-              future: FirebaseFirestore.instance.collection('sellBills').get(),
+              future: FirebaseFirestore.instance
+                  .collection('sellBills')
+                  .orderBy('date', descending: true) // Add ordering by date
+                  .get(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
