@@ -5,7 +5,6 @@ import 'package:malavi_management/modules/screens/profit-screen/profitScreen.dar
 
 import '../bill-screen/bill_screen.dart';
 import '../home-screen/home_screen.dart';
-import '../profile-screen/profile_screen.dart';
 
 class NavBarScreen extends StatefulWidget {
   final int initialIndex;
@@ -57,7 +56,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet), label: 'Bill'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: 'Profit'),
+              icon: Icon(Icons.attach_money), label: 'Malavi'),
         ],
       ),
     );

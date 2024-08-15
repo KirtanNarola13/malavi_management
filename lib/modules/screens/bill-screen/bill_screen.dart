@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:malavi_management/modules/screens/bill-screen/bill_edit_screen.dart';
@@ -164,7 +166,7 @@ class _BillScreenState extends State<BillScreen> {
                         child: ExpansionTile(
                           title: Text(
                             "${bill['party_name']} - Amount : ${grandTotal.toStringAsFixed(2)}",
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                           subtitle: Text(
                               "Date : ${bill['date']} | Bill No : ${bill['billNumber']}"),
@@ -286,9 +288,17 @@ class _BillScreenState extends State<BillScreen> {
     );
   }
 
-  double lastTotal = 0.0;
-  finalTotal(double grandTotal, double cashDiscountPercent) {
-    lastTotal = grandTotal - (grandTotal * cashDiscountPercent) / 100;
+  double lastUpdateTotal = 0.0;
+
+  finalUpdateTotal(double grandTotal, double cashDiscountPercent) {
+    if (cashDiscountPercent > 0) {
+      double discountAmount = (grandTotal * cashDiscountPercent) / 100;
+      double lastTotal = grandTotal - discountAmount;
+      log('Last Total: $lastTotal | Discount Amount: $discountAmount | Grand Total: $grandTotal | Cash Discount: $cashDiscountPercent');
+    } else {
+      lastUpdateTotal = grandTotal;
+    }
+    return lastUpdateTotal.toStringAsFixed(2);
   }
 
   Future<void> _updatePaymentStatus(String paymentType, double receivedPayment,
@@ -315,14 +325,17 @@ class _BillScreenState extends State<BillScreen> {
 
       double grandTotal =
           double.tryParse(billData['grandTotal']?.toString() ?? '0.0') ?? 0.0;
-      double discountedTotal = grandTotal - cashDiscount;
-      finalTotal(grandTotal, cashDiscount);
+      // double discountedTotal = grandTotal - cashDiscount;
+      finalUpdateTotal(grandTotal, cashDiscount);
       await sellBillsCollection.doc(billDocId).update({
         'items': items,
         'paymentStatus': paymentType,
         'kasar': (paymentType == 'Kasar') ? kasar : 0,
-        'grandTotal':
-            (paymentType == 'Kasar') ? 0 : grandTotal - receivedPayment,
+        'grandTotal': (paymentType == 'Kasar')
+            ? 0
+            : (paymentType == 'Full Payment')
+                ? 0
+                : grandTotal - receivedPayment,
         'cashDiscount': cashDiscount,
       });
     }
@@ -347,15 +360,15 @@ class _BillScreenState extends State<BillScreen> {
             double kasar = 0.0;
 
             return AlertDialog(
-              title: Text('Payment Details'),
+              title: const Text('Payment Details'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Grand Total: \$${grandTotal.toStringAsFixed(2)}'),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   DropdownButton<String>(
                     value: paymentType,
-                    items: [
+                    items: const [
                       DropdownMenuItem(
                           value: 'Full Payment', child: Text('Full Payment')),
                       DropdownMenuItem(value: 'Baki', child: Text('Baki')),
@@ -376,11 +389,11 @@ class _BillScreenState extends State<BillScreen> {
                       });
                     },
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: discountPercentageController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Cash Discount (%)',
                       border: OutlineInputBorder(),
                     ),
@@ -404,21 +417,21 @@ class _BillScreenState extends State<BillScreen> {
                       });
                     },
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: discountedTotalAmountController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Discounted Payment',
                       border: OutlineInputBorder(),
                     ),
                     readOnly: true,
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: receivedPaymentController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Received Payment',
                       border: OutlineInputBorder(),
                     ),
@@ -431,7 +444,7 @@ class _BillScreenState extends State<BillScreen> {
                       });
                     },
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   if (paymentType == 'Kasar') ...[
                     Text(
                         'Remaining Amount (Kasar): \$${kasar.toStringAsFixed(2)}'),
@@ -455,7 +468,7 @@ class _BillScreenState extends State<BillScreen> {
                       double discountAmount =
                           grandTotal * (discountPercentage / 100);
                       double discountedTotal = grandTotal - discountAmount;
-                      double remainingAmount = (paymentType == 'Kasar')
+                      (paymentType == 'Kasar')
                           ? discountedTotal - receivedPayment
                           : (paymentType == 'Baki')
                               ? discountedTotal - receivedPayment
@@ -478,22 +491,26 @@ class _BillScreenState extends State<BillScreen> {
                         (route) => false,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Payment submitted successfully!'),
                         ),
                       );
                     } else {
                       // Handle invalid or empty input
-                      print('Invalid received payment amount.');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Invalid received payment amount.'),
+                        ),
+                      );
                     }
                   },
-                  child: Text('Submit'),
+                  child: const Text('Submit'),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
               ],
             );
@@ -506,14 +523,19 @@ class _BillScreenState extends State<BillScreen> {
   Future<pw.Document> generatePdf(Map<String, dynamic> bill) async {
     final pdf = pw.Document();
 
-    pw.Widget buildCell(String text, {bool isHeader = false}) {
+    pw.Widget buildCell(String text,
+        {bool isHeader = false, bool isGrandTotal = false}) {
       return pw.Padding(
-        padding: const pw.EdgeInsets.all(8.0),
+        padding: const pw.EdgeInsets.all(6.0),
         child: pw.Text(
           text,
           textAlign: pw.TextAlign.center,
           style: pw.TextStyle(
-            fontSize: isHeader ? 10 : 9,
+            fontSize: isHeader
+                ? 11
+                : isGrandTotal
+                    ? 17
+                    : 10,
             fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
           ),
         ),
@@ -527,6 +549,28 @@ class _BillScreenState extends State<BillScreen> {
             double.tryParse(item['discount']?.toString() ?? '0.0') ?? 0.0;
       }
       return discount;
+    }
+
+    double total = 0;
+    calculateGrandTotal(Map<String, dynamic> bill, double cashDiscountPercent) {
+      for (var item in bill['items']) {
+        total += double.tryParse(item['netAmount']?.toString() ?? '0.0') ?? 0.0;
+      }
+      log(total.toString());
+      return total.toStringAsFixed(2);
+    }
+
+    double lastTotal = 0.0;
+
+    Object finalTotal(double grandTotal, double cashDiscountPercent) {
+      if (cashDiscountPercent > 0) {
+        double discountAmount = (grandTotal * cashDiscountPercent) / 100;
+        double lastTotal = grandTotal - discountAmount;
+        log('Last Total: $lastTotal | Discount Amount: $discountAmount | Grand Total: $grandTotal | Cash Discount: $cashDiscountPercent');
+        return lastTotal.toStringAsFixed(2);
+      } else {
+        return grandTotal.toStringAsFixed(2);
+      }
     }
 
     double calculateTotalQuantity(Map<String, dynamic> bill) {
@@ -544,6 +588,8 @@ class _BillScreenState extends State<BillScreen> {
 
     pdf.addPage(
       pw.Page(
+        orientation: pw.PageOrientation.portrait,
+        margin: const pw.EdgeInsets.all(55.0),
         pageFormat: PdfPageFormat.a3,
         build: (pw.Context context) {
           return pw.Column(
@@ -557,12 +603,12 @@ class _BillScreenState extends State<BillScreen> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        '${bill['party_name']}',
+                        'DELIVERY CHALLAN',
                         style: const pw.TextStyle(fontSize: 24),
                       ),
                       pw.SizedBox(height: 20),
                       pw.Text(
-                        '${bill['partyAddress']}',
+                        '${bill['party_name']}\n${bill['partyAddress']}',
                         style: const pw.TextStyle(fontSize: 18),
                       ),
                     ],
@@ -599,7 +645,7 @@ class _BillScreenState extends State<BillScreen> {
                   2: const pw.FixedColumnWidth(50), // MRP column
                   3: const pw.FixedColumnWidth(50), // Quantity column
                   4: const pw.FixedColumnWidth(50), // Free column
-                  5: const pw.FixedColumnWidth(50), // Price column
+                  5: const pw.FixedColumnWidth(55), // Price column
                   6: const pw.FixedColumnWidth(50), // Discount column
                   7: const pw.FixedColumnWidth(70), // Amount column
                 },
@@ -669,10 +715,7 @@ class _BillScreenState extends State<BillScreen> {
                       buildCell(calculateDiscount(bill)
                           .toStringAsFixed(2)), // Total Discount
                       buildCell(
-                        (double.tryParse(
-                                    bill['grandTotal']?.toString() ?? '0.0') ??
-                                0.0)
-                            .toStringAsFixed(2),
+                        ('${calculateGrandTotal(bill, bill['cashDiscount'])}'),
                       ), // Grand Total
                     ],
                   ),
@@ -683,9 +726,11 @@ class _BillScreenState extends State<BillScreen> {
                       buildCell(''),
                       buildCell(''), // Total Quantity
                       buildCell(''),
-                      buildCell('CASH DISCOUNT'),
-                      buildCell('${bill['cashDiscount']}'), // Total Discount
-                      buildCell('${lastTotal}'), // Grand Total
+                      buildCell('CASH DISCOUNT', isHeader: true),
+                      buildCell('${bill['cashDiscount']}',
+                          isHeader: true), // Total Discount
+                      buildCell(' ${finalTotal(total, bill['cashDiscount'])}',
+                          isGrandTotal: true), // Grand Total
                     ],
                   ),
                 ],

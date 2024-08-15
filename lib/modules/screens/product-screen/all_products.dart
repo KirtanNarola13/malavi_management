@@ -212,6 +212,8 @@ class _AllProductsState extends State<AllProducts> {
                                                   ['company'],
                                               'category': _resultList[index]
                                                   ['category'],
+                                              'image_url': _resultList[index]
+                                                  ['image_url'],
                                             },
                                           ),
                                         ),

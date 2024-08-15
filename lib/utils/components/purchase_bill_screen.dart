@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -86,27 +87,62 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
-                  return DropdownButtonFormField<String>(
-                    value: selectedProduct,
-                    items: snapshot.data?.docs.map((doc) {
-                      imgUrl = doc['image_url'];
-                      return DropdownMenuItem<String>(
-                        value: doc['title'],
-                        child: Text(doc['title']),
-                      );
-                    }).toList(),
-                    decoration: InputDecoration(
-                      labelText: 'Select product',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: (value) {
+                  List<Map<String, dynamic>> items =
+                      snapshot.data!.docs.map((doc) {
+                    return {
+                      'id': doc.id,
+                      'label': "${doc['title']}",
+                    };
+                  }).toList();
+                  return DropdownSearch<String>(
+                    items:
+                        items.map((item) => item['label'] as String).toList(),
+                    selectedItem: selectedProduct != null
+                        ? items.firstWhere(
+                            (item) => item['id'] == selectedProduct)['label']
+                        : null,
+                    onChanged: (String? newValue) {
                       setState(() {
-                        selectedProduct = value!;
+                        selectedProduct = items.firstWhere(
+                            (item) => item['label'] == newValue)['id'];
                       });
                     },
+                    popupProps: PopupProps.menu(
+                      showSearchBox: true,
+                    ),
+                    dropdownDecoratorProps: DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: 'Select Product',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    clearButtonProps: ClearButtonProps(
+                      isVisible: true,
+                    ),
                   );
+                  // return DropdownButtonFormField<String>(
+                  //   value: selectedProduct,
+                  //   items: snapshot.data?.docs.map((doc) {
+                  //     imgUrl = doc['image_url'];
+                  //     return DropdownMenuItem<String>(
+                  //       value: doc['title'],
+                  //       child: Text(doc['title']),
+                  //     );
+                  //   }).toList(),
+                  //   decoration: InputDecoration(
+                  //     labelText: 'Select product',
+                  //     border: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //   ),
+                  //   onChanged: (value) {
+                  //     setState(() {
+                  //       selectedProduct = value!;
+                  //     });
+                  //   },
+                  // );
                 },
               ),
               const SizedBox(height: 10),
@@ -421,15 +457,22 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
   void calculateSaleRate() {
     if (mrp != null && margin != null) {
-      saleRate = (mrp! / margin!);
+      if (margin == 0) {
+        saleRate = mrp; // Set saleRate equal to MRP if margin is 0
+      } else {
+        saleRate = mrp! / margin!;
+      }
       saleRateController.text = saleRate?.toStringAsFixed(3) ?? '';
     }
   }
 
   void calculateMargin() {
-    double minusAmount;
     if (mrp != null && saleRate != null) {
-      margin = mrp! / saleRate!;
+      if (saleRate == 0) {
+        margin = 0; // Set margin to 0 if saleRate is 0
+      } else {
+        margin = mrp! / saleRate!;
+      }
       marginController.text = margin?.toStringAsFixed(3) ?? '';
     }
   }
@@ -442,22 +485,28 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
   Future<String> _generateBillNumber() async {
     final billsRef = FirebaseFirestore.instance.collection('pendingBills');
+
+    // Fetch the most recent bill
     final querySnapshot =
         await billsRef.orderBy('billNumber', descending: true).limit(1).get();
 
+    String billNumber;
+
     if (querySnapshot.docs.isNotEmpty) {
-      final lastBillDoc = querySnapshot.docs.first;
-      final lastBillNumber = lastBillDoc['billNumber'] as String;
+      final lastBillNumber = querySnapshot.docs.first['billNumber'] as String;
 
-      // Extract the numeric part and increment it
-      final lastNumber = int.parse(lastBillNumber.substring(2));
-      final newNumber = lastNumber + 1;
+      // Remove the 'A' and convert to int
+      final currentNumber = int.parse(lastBillNumber.substring(1));
+      final newNumber = currentNumber + 1;
 
-      return 'A${newNumber.toString().padLeft(2, '0')}';
+      // Generate new bill number with 'A' prefix
+      billNumber = 'A${newNumber.toString().padLeft(2, '0')}';
     } else {
-      // Start from 'A01' if no previous bill exists
-      return 'A01';
+      // Start with 'A00' if no bills exist
+      billNumber = 'A00';
     }
+
+    return billNumber;
   }
 
   String companyName = '';
@@ -488,7 +537,26 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
     }
   }
 
+  void _showSavingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Saving bill..."),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void savePurchaseBill() async {
+    _showSavingDialog(context);
     if (selectedParty != null && billItems.isNotEmpty) {
       final newBillNumber = await _generateBillNumber();
 
@@ -561,6 +629,8 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
           'totalAmount': totalAmountItem,
           'partyName': selectedParty!,
           'date': Timestamp.now(),
+        }).then((_) {
+          Navigator.of(context).pop();
         });
       }
 

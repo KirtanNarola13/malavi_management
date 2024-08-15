@@ -742,7 +742,13 @@ class _SellBillScreenState extends State<SellBillScreen> {
             .doc(productName)
             .collection('purchaseHistory')
             .doc(partyProductId)
-            .update({'quantity': finalQuantity});
+            .update({'quantity': finalQuantity}).then((_) {
+          var totalQuantity = productDoc['totalStock'] - decreementedQuatity;
+          FirebaseFirestore.instance
+              .collection('productStock')
+              .doc(productName)
+              .update({'totalStock': totalQuantity});
+        });
       } else {
         // Handle the case where the party product document does not exist
         print('Party product document does not exist');

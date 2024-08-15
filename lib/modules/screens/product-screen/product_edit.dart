@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,10 +16,12 @@ class EditProduct extends StatefulWidget {
 
 class _EditProductState extends State<EditProduct> {
   late TextEditingController _titleController;
-
   String? selectedCompany;
   String? selectedCategory;
+  String? imgUrl;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  late String previousTitle;
 
   @override
   void initState() {
@@ -28,6 +29,8 @@ class _EditProductState extends State<EditProduct> {
     _titleController = TextEditingController(text: widget.product['title']);
     selectedCompany = widget.product['company'];
     selectedCategory = widget.product['category'];
+    previousTitle = widget.product['title']; // Store the previous title
+    imgUrl = widget.product['image_url'];
   }
 
   Future<void> _updateProduct(String? company, String? category) async {
@@ -39,26 +42,47 @@ class _EditProductState extends State<EditProduct> {
     }
 
     try {
-      // Find the document with the specified title
+      // Find the document with the previous title
       QuerySnapshot querySnapshot = await _firestore
           .collection('products')
-          .where('title', isEqualTo: _titleController.text)
+          .where('title', isEqualTo: previousTitle)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         // Get the document ID of the first matching document
         String docId = querySnapshot.docs.first.id;
 
-        // Update the document using the retrieved document ID
-        await _firestore.collection('products').doc(docId).update(
-          {
+        // Check if the title has changed
+        if (_titleController.text != previousTitle) {
+          // Delete the old document
+          await _firestore.collection('products').doc(docId).delete();
+
+          // Create a new document with the updated title and other details
+          await _firestore
+              .collection('products')
+              .doc(_titleController.text)
+              .set({
             'title': _titleController.text,
             'company': company,
             'category': category,
-          },
-        );
+            'image_url': imgUrl,
+            'units': 'psc',
+          });
 
-        log("Product updated successfully");
+          log("Product updated with new title and document ID");
+        } else {
+          // Update the document if the title hasn't changed
+          await _firestore.collection('products').doc(docId).update({
+            'title': _titleController.text,
+            'company': company,
+            'category': category,
+            'image_url': imgUrl,
+            'units': 'psc',
+          });
+
+          log("Product updated successfully");
+        }
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
