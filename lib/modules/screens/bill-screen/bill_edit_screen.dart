@@ -2,8 +2,6 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:malavi_management/modules/screens/bill-screen/const.dart';
-
 import '../nav-bar-screen/nav_bar_screen.dart';
 
 class BillEditScreen extends StatefulWidget {
@@ -15,7 +13,6 @@ class BillEditScreen extends StatefulWidget {
 
 class _BillEditScreenState extends State<BillEditScreen> {
   Map bill = {};
-  double cashDiscount = 0.0;
   double grandTotal = 0.0;
 
   @override
@@ -26,15 +23,6 @@ class _BillEditScreenState extends State<BillEditScreen> {
       setState(() {
         bill = arguments;
         bill['billItems'] = bill['billItems'] ?? [];
-        if (saleBillProduct.isNotEmpty) {
-          for (var product in bill['billItems']) {
-            if (saleBillProduct['productName'] == product['productName']) {
-              bill['billItems'].remove(product);
-              bill['billItems'].add(saleBillProduct);
-              break;
-            }
-          }
-        }
       });
     } else {
       print("No arguments found for this route.");
@@ -105,10 +93,18 @@ class _BillEditScreenState extends State<BillEditScreen> {
             margin: const EdgeInsets.all(8.0),
             child: ListTile(
               title: Text(item['productName']),
-              subtitle: Text(item['quantity'].toString()),
+              subtitle: Text('Quantity: ${item['quantity']}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove),
+                    onPressed: () {
+                      if (bill['billItems'][index]['quantity'] > 1) {
+                        decrementQuantity(index);
+                      }
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Icons.arrow_forward_ios),
                     onPressed: () async {
@@ -182,10 +178,52 @@ class _BillEditScreenState extends State<BillEditScreen> {
     bill['grandTotal'] = grandTotal.toString();
   }
 
-  removeProduct(int index) {
+  void decrementQuantity(int index) {
+    setState(() {
+      bill['billItems'][index]['quantity']--;
+      updateGrandTotal();
+    });
+
+    // Increase the stock by 1 for the decremented product
+    updateProductStock(bill['billItems'][index]['productName'], 1);
+  }
+
+  void removeProduct(int index) async {
+    final removedItem = bill['billItems'][index];
+    final quantityToAddBack = removedItem['quantity'];
+
     setState(() {
       bill['billItems'].removeAt(index);
-      updateBill();
+      updateGrandTotal();
     });
+
+    // Increase the stock of the product that was removed
+    await updateProductStock(removedItem['productName'], quantityToAddBack);
+  }
+
+  Future<void> updateProductStock(String productName, int quantity) async {
+    try {
+      // Reference to the product stock document in Firestore
+      final productRef = FirebaseFirestore.instance
+          .collection('productStock')
+          .doc(productName);
+
+      DocumentSnapshot docSnapshot = await productRef.get();
+
+      if (docSnapshot.exists) {
+        final currentStock = docSnapshot['total_quantity'];
+
+        // Update the stock by incrementing the total_quantity
+        await productRef.update({
+          'total_quantity': currentStock + quantity,
+        });
+
+        log('Product stock updated for $productName: +$quantity');
+      } else {
+        print("No product found with the name $productName.");
+      }
+    } catch (e) {
+      print("Error updating product stock: $e");
+    }
   }
 }

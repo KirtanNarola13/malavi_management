@@ -105,6 +105,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                       setState(() {
                         selectedProduct = items.firstWhere(
                             (item) => item['label'] == newValue)['id'];
+                        fetchProductDetails(selectedProduct!);
                       });
                     },
                     popupProps: PopupProps.menu(

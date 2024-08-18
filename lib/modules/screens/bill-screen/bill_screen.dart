@@ -589,7 +589,7 @@ class _BillScreenState extends State<BillScreen> {
     pdf.addPage(
       pw.Page(
         orientation: pw.PageOrientation.portrait,
-        margin: const pw.EdgeInsets.all(55.0),
+        margin: const pw.EdgeInsets.all(46.0),
         pageFormat: PdfPageFormat.a3,
         build: (pw.Context context) {
           return pw.Column(
@@ -640,13 +640,13 @@ class _BillScreenState extends State<BillScreen> {
               pw.Table(
                 border: pw.TableBorder.all(),
                 columnWidths: {
-                  0: const pw.FixedColumnWidth(30), // Item Number column
+                  0: const pw.FixedColumnWidth(25), // Item Number column
                   1: const pw.FixedColumnWidth(200), // Name column
                   2: const pw.FixedColumnWidth(50), // MRP column
                   3: const pw.FixedColumnWidth(50), // Quantity column
-                  4: const pw.FixedColumnWidth(50), // Free column
+                  4: const pw.FixedColumnWidth(35), // Free column
                   5: const pw.FixedColumnWidth(55), // Price column
-                  6: const pw.FixedColumnWidth(50), // Discount column
+                  6: const pw.FixedColumnWidth(42), // Discount column
                   7: const pw.FixedColumnWidth(70), // Amount column
                 },
                 children: [
