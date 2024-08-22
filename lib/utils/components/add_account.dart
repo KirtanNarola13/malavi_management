@@ -58,7 +58,7 @@ class _AddAccountState extends State<AddAccount> {
           _selectedAccountType = null;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
           const SnackBar(
             content: Text(
               'Account added successfully!',
@@ -71,7 +71,7 @@ class _AddAccountState extends State<AddAccount> {
             _isLoading = false;
           },
         );
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(!context.mounted as BuildContext).showSnackBar(
           SnackBar(
             content: Text(
               'Failed to add account: $e',

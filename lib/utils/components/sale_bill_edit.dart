@@ -5,10 +5,10 @@ class EditProductScreen extends StatefulWidget {
   final void Function(Map<String, dynamic>) onUpdate;
 
   const EditProductScreen({
-    Key? key,
+    super.key,
     required this.product,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
   _EditProductScreenState createState() => _EditProductScreenState();

@@ -62,7 +62,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
         .collection('pendingBills')
         .doc(billId)
         .delete();
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
       const SnackBar(content: Text('Bill deleted')),
     );
     getAllProducts(); // Refresh the list after deletion
@@ -112,7 +112,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                       });
                     },
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   TextField(
                     controller:
                         TextEditingController(text: kasar.toStringAsFixed(2)),
@@ -143,8 +143,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                       'paymentStatus':
                           receivedAmount >= grandTotal ? 'Paid' : 'Pending',
                     });
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    Navigator.of((!context.mounted) as BuildContext).pop();
+                    ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
                       const SnackBar(content: Text('Payment recorded')),
                     );
                     getAllProducts(); // Refresh the list to show updated payment status
@@ -284,7 +284,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                             ],
                           );
                         }).toList(),
-                        ButtonBar(
+                        OverflowBar(
                           alignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
