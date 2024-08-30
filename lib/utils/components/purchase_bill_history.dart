@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:malavi_management/utils/components/purchase_bill/purchase_bill_edit.dart';
 import 'package:malavi_management/utils/components/purchase_bill_edit_product_list.dart';
 
 class PurchaseBillHistory extends StatefulWidget {
@@ -297,8 +298,16 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                             TextButton(
                               onPressed: () {
                                 log("${bill.id}");
-                                editBill(bill.id, bill['billItems'],
-                                    bill['grandTotal']);
+                                // editBill(bill.id, bill['billItems'],
+                                //     bill['grandTotal']);
+
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return PurchaseBillEdit(
+                                    items: bill['billItems'],
+                                    billID: bill.id,
+                                  );
+                                }));
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.blue,

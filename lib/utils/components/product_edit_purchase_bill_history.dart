@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ProductEditPurchaseBillHistory extends StatefulWidget {
@@ -199,14 +200,30 @@ class _ProductEditPurchaseBillHistoryState
   }
 
   void updateProductDetails() async {
+    int originalQuantity = billItems['quantity'];
+    int newQuantity = int.parse(quantityController.text);
+
+    // Calculate stock difference
+    int stockDifference = newQuantity - originalQuantity;
+
+    // Update product stock
+    String productName = billItems['productName'];
+    await FirebaseFirestore.instance
+        .collection('productStock')
+        .doc(productName)
+        .update({
+      'total_quantity': FieldValue.increment(-stockDifference),
+    });
+
+    // Update the bill with the new product details
     Map<String, dynamic> updatedProduct = {
-      'productName': billItems['productName'],
-      'quantity': quantityController.text,
-      'purchaseRate': purchaseRateController.text,
-      'totalAmount': totalAmountController.text,
-      'margin': marginController.text,
-      'saleRate': saleRateController.text,
-      'mrp': mrpController.text,
+      'productName': productName,
+      'quantity': newQuantity,
+      'purchaseRate': double.parse(purchaseRateController.text),
+      'totalAmount': double.parse(totalAmountController.text),
+      'margin': double.parse(marginController.text),
+      'saleRate': double.parse(saleRateController.text),
+      'mrp': double.parse(mrpController.text),
     };
 
     Navigator.pop(context, updatedProduct);

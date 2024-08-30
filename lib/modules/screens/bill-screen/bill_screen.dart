@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:malavi_management/modules/screens/bill-screen/bill_edit_screen.dart';
+import 'package:malavi_management/modules/screens/bill-screen/sale_bill_edit.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share/share.dart';
@@ -216,8 +217,16 @@ class _BillScreenState extends State<BillScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.edit),
                                   onPressed: () {
-                                    editBill(billDoc, bill['items'],
-                                        grandTotal.toStringAsFixed(2));
+                                    // editBill(billDoc, bill['items'],
+                                    //     grandTotal.toStringAsFixed(2));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SaleBillEdit(
+                                            billDocId: billDoc,
+                                            items: bill['items']),
+                                      ),
+                                    );
                                   },
                                 ),
                                 IconButton(

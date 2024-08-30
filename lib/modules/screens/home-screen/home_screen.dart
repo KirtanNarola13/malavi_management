@@ -4,7 +4,7 @@ import 'package:malavi_management/utils/components/add_account.dart';
 import 'package:malavi_management/utils/components/add_category.dart';
 import 'package:malavi_management/utils/components/product_screen.dart';
 import 'package:malavi_management/utils/components/purchase_bill_history.dart';
-import 'package:malavi_management/utils/components/purchase_bill_screen.dart';
+import 'package:malavi_management/utils/components/purchase_bill/purchase_bill_screen.dart';
 import 'package:malavi_management/utils/components/sale_bill.dart';
 import 'package:malavi_management/utils/components/view_stoke.dart';
 
