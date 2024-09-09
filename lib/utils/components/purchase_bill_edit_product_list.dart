@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:malavi_management/utils/components/product_edit_purchase_bill_history.dart';
 import 'package:malavi_management/utils/const.dart';
 import '../../modules/screens/nav-bar-screen/nav_bar_screen.dart';
 
@@ -39,7 +39,9 @@ class _PurchaseBillEditProductListState
             updateBill();
           }
         } else {
-          print("No arguments found for this route.");
+          if (kDebugMode) {
+            print("No arguments found for this route.");
+          }
         }
       });
     });
@@ -60,7 +62,9 @@ class _PurchaseBillEditProductListState
     try {
       final billId = bill['billDocId'];
       if (billId == null) {
-        print("billId is null, cannot update document.");
+        if (kDebugMode) {
+          print("billId is null, cannot update document.");
+        }
         return;
       }
 
@@ -77,11 +81,11 @@ class _PurchaseBillEditProductListState
           'billItems': bill['billItems'],
           'grandTotal': bill['grandTotal'],
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Bill updated successfully.")),
+        ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
+          const SnackBar(content: Text("Bill updated successfully.")),
         );
         Navigator.pushAndRemoveUntil(
-          context,
+          (!context.mounted) as BuildContext,
           MaterialPageRoute(
             builder: (context) => const NavBarScreen(
               initialIndex: 0,
@@ -90,10 +94,14 @@ class _PurchaseBillEditProductListState
           (route) => false,
         );
       } else {
-        print("Document with ID $billId does not exist.");
+        if (kDebugMode) {
+          print("Document with ID $billId does not exist.");
+        }
       }
     } catch (e) {
-      print("Error updating document: $e");
+      if (kDebugMode) {
+        print("Error updating document: $e");
+      }
     }
   }
 

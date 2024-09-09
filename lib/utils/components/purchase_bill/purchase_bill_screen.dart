@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -108,7 +109,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         fetchProductDetails(selectedProduct!);
                       });
                     },
-                    popupProps: PopupProps.menu(
+                    popupProps: const PopupProps.menu(
                       showSearchBox: true,
                     ),
                     dropdownDecoratorProps: DropDownDecoratorProps(
@@ -119,7 +120,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                         ),
                       ),
                     ),
-                    clearButtonProps: ClearButtonProps(
+                    clearButtonProps: const ClearButtonProps(
                       isVisible: true,
                     ),
                   );
@@ -526,15 +527,19 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         setState(() {
           companyName = productDoc['company'] ?? '';
           categoryName = productDoc['category'] ?? '';
-          log("Company: ${companyName}  Category: ${categoryName}");
+          log("Company: $companyName  Category: $categoryName");
         });
       } else {
         // Handle the case where the product document does not exist
-        print('Product document does not exist');
+        if (kDebugMode) {
+          print('Product document does not exist');
+        }
       }
     } catch (e) {
       // Handle errors
-      print('Error fetching product details: $e');
+      if (kDebugMode) {
+        print('Error fetching product details: $e');
+      }
     }
   }
 
@@ -576,7 +581,6 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         'billNumber': newBillNumber, // Add bill number here
         'partyName': selectedParty!,
         'billItems': billItems,
-
         'paymentStatus': 'Pending',
         'grandTotal': grandTotal.toString(),
         'createdAt': Timestamp.now(),
@@ -631,7 +635,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
           'partyName': selectedParty!,
           'date': Timestamp.now(),
         }).then((_) {
-          Navigator.of(context).pop();
+          Navigator.of((!context.mounted) as BuildContext).pop();
         });
       }
 
@@ -640,8 +644,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         billItems.clear();
         clearInputs();
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
         const SnackBar(
           content: Text('Purchase Bill Saved Successfully'),
         ),

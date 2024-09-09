@@ -22,8 +22,8 @@ class _AddCompanyState extends State<AddCompany> {
         },
       );
 
-      Navigator.of(context).pop(); // Close the dialog
-      ScaffoldMessenger.of(context).showSnackBar(
+      Navigator.of((!context.mounted) as BuildContext).pop(); // Close the dialog
+      ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
         SnackBar(
           content: Text(
             'Company "$companyName" added.',
@@ -103,8 +103,8 @@ class _AddCompanyState extends State<AddCompany> {
                       .doc(company.id)
                       .update({'name': newCompanyName});
 
-                  Navigator.of(context).pop(); // Close the dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  Navigator.of((!context.mounted) as BuildContext).pop(); // Close the dialog
+                  ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
                     SnackBar(
                       content: Text(
                         'Company "${company['name']}" updated to "$newCompanyName".',
@@ -134,7 +134,7 @@ class _AddCompanyState extends State<AddCompany> {
         .doc(company.id)
         .delete();
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
       SnackBar(
         content: Text('Company "${company['name']}" deleted.'),
       ),

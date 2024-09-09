@@ -123,7 +123,7 @@ class _ViewStockState extends State<ViewStock> {
       barrierDismissible:
           false, // Prevent closing the dialog by tapping outside
       builder: (BuildContext context) {
-        return AlertDialog(
+        return const AlertDialog(
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -148,7 +148,7 @@ class _ViewStockState extends State<ViewStock> {
     await _sortResultList();
 
     // Close the dialog after 2 seconds
-    Timer(Duration(seconds: 2), () {
+    Timer(const Duration(seconds: 2), () {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop(); // Close the dialog
       }

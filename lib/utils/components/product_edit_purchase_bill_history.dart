@@ -130,7 +130,7 @@ class _ProductEditPurchaseBillHistoryState
             controller: controller1,
             decoration: InputDecoration(
               labelText: labelText1,
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10.0)),
               ),
             ),
@@ -144,7 +144,7 @@ class _ProductEditPurchaseBillHistoryState
             controller: controller2,
             decoration: InputDecoration(
               labelText: labelText2,
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10.0)),
               ),
             ),
@@ -182,8 +182,8 @@ class _ProductEditPurchaseBillHistoryState
 
   void calculateTotalAmount() {
     setState(() {
-      totalAmount = (int.parse(quantityController.text) ?? 0) *
-          (double.parse(purchaseRateController.text) ?? 0.0);
+      totalAmount = (int.parse(quantityController.text)) *
+          (double.parse(purchaseRateController.text));
       totalAmountController.text = totalAmount.toString();
     });
   }

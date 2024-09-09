@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:malavi_management/modules/screens/bill-screen/const.dart';
 
@@ -52,7 +53,9 @@ class _BillProductEditState extends State<BillProductEdit> {
           discountController.text = billItems['discount']?.toString() ?? '';
         });
       } else {
-        print("No arguments found for this route.");
+        if (kDebugMode) {
+          print("No arguments found for this route.");
+        }
       }
     });
   }
@@ -65,97 +68,107 @@ class _BillProductEditState extends State<BillProductEdit> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            buildTextFieldRow(
-              controller1: quantityController,
-              labelText1: 'Quantity',
-              onChanged1: (value) {
-                setState(() {
-                  calculateTotalAmount();
-                  calculateNetAmount();
-                });
-              },
-              controller2: freeQuantityController,
-              labelText2: 'Free Quantity',
-              onChanged2: (value) {},
-            ),
-            const SizedBox(height: 10),
-            buildTextFieldRow(
-              controller1: mrpController,
-              labelText1: 'MRP',
-              onChanged1: (value) {
-                setState(() {
-                  calculateSaleRate();
-                });
-              },
-              controller2: purchaseRateController,
-              labelText2: 'Purchase Rate',
-              onChanged2: (value) {
-                setState(() {
-                  calculateTotalAmount();
-                  calculateNetAmount();
-                });
-              },
-            ),
-            const SizedBox(height: 10),
-            buildTextFieldRow(
-              controller1: saleRateController,
-              labelText1: 'Sale Rate',
-              onChanged1: (value) {
-                setState(() {
-                  calculateMargin();
-                });
-              },
-              controller2: marginController,
-              labelText2: 'Margin (%)',
-              onChanged2: (value) {
-                setState(() {
-                  calculateSaleRate();
-                });
-              },
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: totalAmountController,
-              decoration: InputDecoration(
-                label: Text("Total Amount"),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
+        padding: const EdgeInsets.all(
+          8.0,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              buildTextFieldRow(
+                controller1: quantityController,
+                labelText1: 'Quantity',
+                onChanged1: (value) {
+                  setState(
+                    () {
+                      calculateTotalAmount();
+                      calculateNetAmount();
+                    },
+                  );
+                },
+                controller2: freeQuantityController,
+                labelText2: 'Free Quantity',
+                onChanged2: (value) {},
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              buildTextFieldRow(
+                controller1: mrpController,
+                labelText1: 'MRP',
+                onChanged1: (value) {
+                  setState(
+                    () {
+                      calculateSaleRate();
+                    },
+                  );
+                },
+                controller2: purchaseRateController,
+                labelText2: 'Purchase Rate',
+                onChanged2: (value) {
+                  setState(() {
+                    calculateTotalAmount();
+                    calculateNetAmount();
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              buildTextFieldRow(
+                controller1: saleRateController,
+                labelText1: 'Sale Rate',
+                onChanged1: (value) {
+                  setState(() {
+                    calculateMargin();
+                  });
+                },
+                controller2: marginController,
+                labelText2: 'Margin (%)',
+                onChanged2: (value) {
+                  setState(() {
+                    calculateSaleRate();
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: totalAmountController,
+                decoration: const InputDecoration(
+                  label: Text("Total Amount"),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            buildTextFieldRow(
-              controller1: discountController,
-              labelText1: 'Discount (%)',
-              onChanged1: (value) {
-                setState(() {
-                  calculateNetAmount();
-                });
-              },
-              controller2: netAmountController,
-              labelText2: 'Net Amount',
-              readOnly2: true,
-            ),
-            const SizedBox(height: 10),
-            // buildTextFieldRow(
-            //
-            //   controller1: netAmountController,
-            //   labelText1: 'Net Amount',
-            //   readOnly1: true,
-            //   controller2: mrpController,
-            //   labelText2: 'MRP',
-            //   onChanged2: (value) {
-            //     setState(() {
-            //       calculateSaleRate();
-            //     });
-            //   },
-            // ),
-            const SizedBox(height: 10),
-            buildUpdateButton(),
-          ],
+              const SizedBox(height: 10),
+              buildTextFieldRow(
+                controller1: discountController,
+                labelText1: 'Discount (%)',
+                onChanged1: (value) {
+                  setState(() {
+                    calculateNetAmount();
+                  });
+                },
+                controller2: netAmountController,
+                labelText2: 'Net Amount',
+                readOnly2: true,
+              ),
+              const SizedBox(height: 10),
+              // buildTextFieldRow(
+              //
+              //   controller1: netAmountController,
+              //   labelText1: 'Net Amount',
+              //   readOnly1: true,
+              //   controller2: mrpController,
+              //   labelText2: 'MRP',
+              //   onChanged2: (value) {
+              //     setState(() {
+              //       calculateSaleRate();
+              //     });
+              //   },
+              // ),
+              const SizedBox(height: 10),
+              buildUpdateButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -178,7 +191,7 @@ class _BillProductEditState extends State<BillProductEdit> {
             controller: controller1,
             decoration: InputDecoration(
               labelText: labelText1,
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10.0)),
               ),
             ),
@@ -192,7 +205,7 @@ class _BillProductEditState extends State<BillProductEdit> {
             controller: controller2,
             decoration: InputDecoration(
               labelText: labelText2,
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10.0)),
               ),
             ),

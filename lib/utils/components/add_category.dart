@@ -20,8 +20,8 @@ class _AddCategoryState extends State<AddCategory> {
         'created_at': Timestamp.now(),
       });
 
-      Navigator.of(context).pop(); // Close the dialog
-      ScaffoldMessenger.of(context).showSnackBar(
+      Navigator.of((!context.mounted) as BuildContext).pop(); // Close the dialog
+      ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
         SnackBar(content: Text('Category "$categoryName" added.')),
       );
       _categoryController.clear(); // Clear the text field
@@ -87,8 +87,8 @@ class _AddCategoryState extends State<AddCategory> {
                       .doc(category.id)
                       .update({'name': newCategoryName});
 
-                  Navigator.of(context).pop(); // Close the dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  Navigator.of((!context.mounted) as BuildContext).pop(); // Close the dialog
+                  ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
                     SnackBar(
                       content: Text(
                         'Category "${category['name']}" updated to "$newCategoryName".',
@@ -122,7 +122,7 @@ class _AddCategoryState extends State<AddCategory> {
         .doc(category.id)
         .delete();
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
       SnackBar(
         content: Text(
           'Category "${category['name']}" deleted.',

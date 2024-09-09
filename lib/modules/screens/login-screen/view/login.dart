@@ -36,155 +36,157 @@ class LoginPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      FadeInUp(
-                        duration: const Duration(
-                          milliseconds: 1000,
-                        ),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      FadeInUp(
-                          duration: const Duration(
-                            milliseconds: 1200,
-                          ),
-                          child: Text(
-                            "Login to your account",
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[700],
-                            ),
-                          )),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                    ),
-                    child: Column(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Column(
                       children: <Widget>[
                         FadeInUp(
                           duration: const Duration(
-                            milliseconds: 1200,
+                            milliseconds: 1000,
                           ),
-                          child: makeInput(
-                            label: "Email",
-                            controller: loginEmailController,
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 20,
                         ),
                         FadeInUp(
-                          duration: const Duration(
-                            milliseconds: 1300,
-                          ),
-                          child: makeInput(
-                            label: "Password",
-                            obscureText: true,
-                            controller: loginPasswordController,
-                          ),
-                        ),
+                            duration: const Duration(
+                              milliseconds: 1200,
+                            ),
+                            child: Text(
+                              "Login to your account",
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey[700],
+                              ),
+                            )),
                       ],
                     ),
-                  ),
-                  FadeInUp(
-                      duration: const Duration(
-                        milliseconds: 1400,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
+                      child: Column(
+                        children: <Widget>[
+                          FadeInUp(
+                            duration: const Duration(
+                              milliseconds: 1200,
+                            ),
+                            child: makeInput(
+                              label: "Email",
+                              controller: loginEmailController,
+                            ),
+                          ),
+                          FadeInUp(
+                            duration: const Duration(
+                              milliseconds: 1300,
+                            ),
+                            child: makeInput(
+                              label: "Password",
+                              obscureText: true,
+                              controller: loginPasswordController,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FadeInUp(
+                        duration: const Duration(
+                          milliseconds: 1400,
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.only(
-                            top: 3,
-                            left: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
                           ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              50,
+                          child: Container(
+                            padding: const EdgeInsets.only(
+                              top: 3,
+                              left: 3,
                             ),
-                            border: const Border(
-                              bottom: BorderSide(
-                                color: Colors.black,
-                              ),
-                              top: BorderSide(
-                                color: Colors.black,
-                              ),
-                              left: BorderSide(
-                                color: Colors.black,
-                              ),
-                              right: BorderSide(
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          child: MaterialButton(
-                            minWidth: double.infinity,
-                            height: 60,
-                            onPressed: () {
-                              SignUpModel signUpModel = SignUpModel(
-                                email: loginEmailController.text,
-                                password: loginPasswordController.text,
-                              );
-                              AuthHelper.authHelper
-                                  .login(signUpModel: signUpModel);
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const NavBarScreen(),
-                                ),
-                                (Route<dynamic> route) => false,
-                              );
-                            },
-                            color: Colors.greenAccent,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
+                            decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(
                                 50,
                               ),
+                              border: const Border(
+                                bottom: BorderSide(
+                                  color: Colors.black,
+                                ),
+                                top: BorderSide(
+                                  color: Colors.black,
+                                ),
+                                left: BorderSide(
+                                  color: Colors.black,
+                                ),
+                                right: BorderSide(
+                                  color: Colors.black,
+                                ),
+                              ),
                             ),
-                            child: const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
+                            child: MaterialButton(
+                              minWidth: double.infinity,
+                              height: 60,
+                              onPressed: () {
+                                SignUpModel signUpModel = SignUpModel(
+                                  email: loginEmailController.text,
+                                  password: loginPasswordController.text,
+                                );
+                                AuthHelper.authHelper
+                                    .login(signUpModel: signUpModel);
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const NavBarScreen(),
+                                  ),
+                                  (Route<dynamic> route) => false,
+                                );
+                              },
+                              color: Colors.greenAccent,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  50,
+                                ),
+                              ),
+                              child: const Text(
+                                "Login",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )),
-                  FadeInUp(
-                    duration: const Duration(
-                      milliseconds: 1500,
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          "Don't have an account?",
-                        ),
-                        Text(
-                          "Sign up",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
+                        )),
+                    FadeInUp(
+                      duration: const Duration(
+                        milliseconds: 1500,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            "Don't have an account?",
                           ),
-                        ),
-                      ],
+                          Text(
+                            "Sign up",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             FadeInUp(
