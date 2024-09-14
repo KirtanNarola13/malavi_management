@@ -530,16 +530,16 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
           log("Company: $companyName  Category: $categoryName");
         });
       } else {
-        // Handle the case where the product document does not exist
-        if (kDebugMode) {
-          print('Product document does not exist');
-        }
+        log('Product document does not exist');
+        // Reset the values if the product is not found
+        companyName = '';
+        categoryName = '';
       }
     } catch (e) {
-      // Handle errors
-      if (kDebugMode) {
-        print('Error fetching product details: $e');
-      }
+      log('Error fetching product details: $e');
+      // Reset the values in case of an error
+      companyName = '';
+      categoryName = '';
     }
   }
 
@@ -578,7 +578,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
       final newBillRef = pendingBillsRef.doc();
       await newBillRef.set({
-        'billNumber': newBillNumber, // Add bill number here
+        'billNumber': newBillNumber,
         'partyName': selectedParty!,
         'billItems': billItems,
         'paymentStatus': 'Pending',
@@ -586,7 +586,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         'createdAt': Timestamp.now(),
       });
 
-      // Continue with updating the product stock and purchase history as before
+      // Process each item in the bill
       for (final item in billItems) {
         final productName = item['productName'];
         final quantity = item['quantity'];
@@ -597,6 +597,9 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
         final totalAmountItem = item['totalAmount'];
         final margin = item['margin'];
 
+        // Fetch product details
+        await fetchProductDetails(productName);
+
         // Reference to the product document
         final productDocRef = productStockRef.doc(productName);
 
@@ -606,18 +609,17 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
 
         double totalStock = 0.0;
         for (final doc in purchaseHistorySnapshot.docs) {
-          final quantity = doc['quantity'] as int;
-          totalStock += quantity;
+          final historyQuantity = doc['quantity'] as int;
+          totalStock += historyQuantity;
         }
-        fetchProductDetails(productName);
+
         // Update product stock
         await productDocRef.set({
           'productName': productName,
           'image_url': image,
           'companyName': companyName,
           'categoryName': categoryName,
-          'totalStock':
-              totalStock + quantity, // Add the new quantity to the total stock
+          'totalStock': totalStock + quantity,
           'date': Timestamp.now(),
         }, SetOptions(merge: true));
 
@@ -634,21 +636,25 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
           'totalAmount': totalAmountItem,
           'partyName': selectedParty!,
           'date': Timestamp.now(),
-        }).then((_) {
-          Navigator.of((!context.mounted) as BuildContext).pop();
         });
       }
+
+      // Close the saving dialog
+      if (context.mounted) Navigator.of(context).pop();
 
       setState(() {
         selectedParty = null;
         billItems.clear();
         clearInputs();
       });
-      ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
-        const SnackBar(
-          content: Text('Purchase Bill Saved Successfully'),
-        ),
-      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Purchase Bill Saved Successfully'),
+          ),
+        );
+      }
     }
   }
 }

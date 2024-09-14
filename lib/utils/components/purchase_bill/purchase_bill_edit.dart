@@ -8,7 +8,12 @@ import 'package:malavi_management/modules/screens/nav-bar-screen/nav_bar_screen.
 class PurchaseBillEdit extends StatefulWidget {
   List items = [];
   String billID;
-  PurchaseBillEdit({super.key, required this.items, required this.billID});
+  String partyName;
+  PurchaseBillEdit(
+      {super.key,
+      required this.items,
+      required this.billID,
+      required this.partyName});
 
   @override
   State<PurchaseBillEdit> createState() => _PurchaseBillEditState();
@@ -44,6 +49,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
     // TODO: implement initState
     billItems = widget.items;
     billDocId = widget.billID;
+    selectedParty = widget.partyName;
     super.initState();
   }
 
@@ -67,12 +73,22 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();
                   }
+                  List<String> partyNames = snapshot.data!.docs
+                      .map((doc) => doc['account_name'] as String)
+                      .toList();
+
+                  // Ensure the selectedParty is in the list
+                  if (selectedParty != null &&
+                      !partyNames.contains(selectedParty)) {
+                    partyNames.add(selectedParty!);
+                  }
+
                   return DropdownButtonFormField<String>(
                     value: selectedParty,
-                    items: snapshot.data?.docs.map((doc) {
+                    items: partyNames.map((name) {
                       return DropdownMenuItem<String>(
-                        value: doc['account_name'],
-                        child: Text(doc['account_name']),
+                        value: name,
+                        child: Text(name),
                       );
                     }).toList(),
                     decoration: InputDecoration(
@@ -571,12 +587,11 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
   }
 
   Future<void> updatePurchaseBill(String billId) async {
-    _showSavingDialog(context);
+    try {
+      _showSavingDialog(context);
 
-    if (selectedParty != null && billItems.isNotEmpty) {
-      double totalAmount = 0;
-      for (final item in billItems) {
-        totalAmount += item['totalAmount'];
+      if (selectedParty == null || billItems.isEmpty) {
+        throw Exception('Please select a party and add items to the bill');
       }
 
       final pendingBillsRef =
@@ -589,17 +604,12 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
       // Retrieve the existing bill details
       final existingBillSnapshot = await existingBillRef.get();
       if (!existingBillSnapshot.exists) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Bill not found'),
-          ),
-        );
-        return;
+        throw Exception('Bill not found');
       }
 
-      final existingBillData = existingBillSnapshot.data();
-      final existingBillItems = existingBillData?['billItems'] ?? [];
+      final existingBillData = existingBillSnapshot.data()!;
+      final existingBillItems =
+          List<Map<String, dynamic>>.from(existingBillData['billItems'] ?? []);
 
       // Update bill details
       await existingBillRef.set({
@@ -607,100 +617,143 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
         'billItems': billItems,
         'paymentStatus': 'Pending',
         'grandTotal': grandTotal.toString(),
-        'createdAt': existingBillData?[
-            'createdAt'], // Preserve the original creation time
-        'updatedAt': Timestamp.now(), // Add an updated timestamp
+        'createdAt': existingBillData['createdAt'],
+        'updatedAt': Timestamp.now(),
       }, SetOptions(merge: true));
 
       // Update product stock and purchase history
-      for (final existingItem in existingBillItems) {
-        final productName = existingItem['productName'];
-        final oldQuantity = existingItem['quantity'];
+      for (final newItem in billItems) {
+        final productName = newItem['productName'];
+        final newQuantity = newItem['quantity'] as int;
 
-        // Reference to the product document
-        final productDocRef = productStockRef.doc(productName);
+        // Find the corresponding existing item
+        final existingItem = existingBillItems.firstWhere(
+          (item) => item['productName'] == productName,
+          orElse: () => <String, dynamic>{},
+        );
 
-        // Revert the stock quantity based on the old bill items
-        final productDocSnapshot = await productDocRef.get();
-        if (productDocSnapshot.exists) {
-          final productData = productDocSnapshot.data();
-          final totalStock = productData?['totalStock'] ?? 0;
+        final oldQuantity = existingItem['quantity'] as int? ?? 0;
+        final quantityDifference = newQuantity - oldQuantity;
 
-          await productDocRef.update({
-            'totalStock': totalStock - oldQuantity,
-          });
+        if (quantityDifference != 0) {
+          // Fetch product details
+          await fetchProductDetails(productName);
+
+          final productDocRef = productStockRef.doc(productName);
+          final productDocSnapshot = await productDocRef.get();
+
+          if (productDocSnapshot.exists) {
+            final productData =
+                productDocSnapshot.data() as Map<String, dynamic>;
+            final currentStock = productData['totalStock'] as int? ?? 0;
+
+            // Update product stock
+            await productDocRef.update({
+              'totalStock': currentStock + quantityDifference,
+              'companyName': companyName,
+              'categoryName': categoryName,
+              'updatedAt': Timestamp.now(),
+            });
+
+            // Update purchase history
+            final purchaseHistoryRef =
+                productDocRef.collection('purchaseHistory');
+            await purchaseHistoryRef.add({
+              'quantity': quantityDifference,
+              'purchaseRate': newItem['purchaseRate'],
+              'mrp': newItem['mrp'],
+              'productName': productName,
+              'image_url': newItem['image_url'],
+              'saleRate': newItem['saleRate'],
+              'margin': newItem['margin'],
+              'totalAmount': newItem['totalAmount'],
+              'partyName': selectedParty!,
+              'date': Timestamp.now(),
+              'billId': billId,
+              'updateType': quantityDifference > 0 ? 'increase' : 'decrease',
+            });
+          }
         }
-
-        // Optionally remove the old purchase history entry if required
       }
 
-      // Update stock and save new purchase history for the new bill items
-      for (final item in billItems) {
-        final productName = item['productName'];
-        final quantity = item['quantity'];
-        final purchaseRate = item['purchaseRate'];
-        final mrp = item['mrp'];
-        final saleRate = item['saleRate'];
-        final image = item['image_url'];
-        final totalAmountItem = item['totalAmount'];
-        final margin = item['margin'];
-
-        // Reference to the product document
-        final productDocRef = productStockRef.doc(productName);
-
-        // Calculate and update total stock
-        final productDocSnapshot = await productDocRef.get();
-        double totalStock = 0.0;
-        if (productDocSnapshot.exists) {
-          totalStock = productDocSnapshot['totalStock'] ?? 0.0;
-        }
-
-        await productDocRef.set({
-          'productName': productName,
-          'image_url': image,
-          'companyName': companyName,
-          'categoryName': categoryName,
-          'totalStock':
-              totalStock + quantity, // Add the new quantity to the total stock
-          'date': Timestamp.now(),
-        }, SetOptions(merge: true));
-
-        // Save purchase history for the product
-        final purchaseHistoryRef = productDocRef.collection('purchaseHistory');
-        final purchaseHistoryDocRef = purchaseHistoryRef.doc();
-        await purchaseHistoryDocRef.set({
-          'quantity': quantity,
-          'purchaseRate': purchaseRate,
-          'mrp': mrp,
-          'productName': productName,
-          'image_url': image,
-          'saleRate': saleRate,
-          'margin': margin,
-          'totalAmount': totalAmountItem,
-          'partyName': selectedParty!,
-          'date': Timestamp.now(),
-        });
-      }
-
-      setState(() {
-        selectedParty = null;
-        billItems.clear();
-        clearInputs();
-      });
-
-      Navigator.pushReplacement(
+      Navigator.of(context).pop(); // Close the saving dialog
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const NavBarScreen(
-            initialIndex: 0,
-          ),
+          builder: (context) => const NavBarScreen(initialIndex: 0),
         ),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Purchase Bill Updated Successfully'),
-        ),
+        const SnackBar(content: Text('Purchase Bill Updated Successfully')),
       );
+    } catch (e) {
+      Navigator.of(context).pop(); // Close the saving dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating bill: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _updateExistingStock(
+      List existingBillItems, CollectionReference productStockRef) async {
+    for (final existingItem in existingBillItems) {
+      final productName = existingItem['productName'];
+      final oldQuantity = existingItem['quantity'];
+
+      final productDocRef = productStockRef.doc(productName);
+      final productDocSnapshot = await productDocRef.get();
+      if (productDocSnapshot.exists) {
+        final productData = productDocSnapshot.data() as Map<String, dynamic>;
+        final totalStock = productData['totalStock'] ?? 0;
+
+        await productDocRef.update({
+          'totalStock': totalStock - oldQuantity,
+        });
+      }
+    }
+  }
+
+  Future<void> _updateNewStock(
+      List billItems, CollectionReference productStockRef) async {
+    for (final item in billItems) {
+      final productName = item['productName'];
+      final quantity = item['quantity'];
+      final purchaseRate = item['purchaseRate'];
+      final mrp = item['mrp'];
+      final saleRate = item['saleRate'];
+      final image = item['image_url'];
+      final totalAmountItem = item['totalAmount'];
+      final margin = item['margin'];
+
+      final productDocRef = productStockRef.doc(productName);
+      final productDocSnapshot = await productDocRef.get();
+      double totalStock = productDocSnapshot.exists
+          ? (productDocSnapshot.data() as Map<String, dynamic>)['totalStock'] ??
+              0.0
+          : 0.0;
+
+      await productDocRef.set({
+        'productName': productName,
+        'image_url': image,
+        'companyName': companyName,
+        'categoryName': categoryName,
+        'totalStock': totalStock + quantity,
+        'date': Timestamp.now(),
+      }, SetOptions(merge: true));
+
+      final purchaseHistoryRef = productDocRef.collection('purchaseHistory');
+      await purchaseHistoryRef.add({
+        'quantity': quantity,
+        'purchaseRate': purchaseRate,
+        'mrp': mrp,
+        'productName': productName,
+        'image_url': image,
+        'saleRate': saleRate,
+        'margin': margin,
+        'totalAmount': totalAmountItem,
+        'partyName': selectedParty!,
+        'date': Timestamp.now(),
+      });
     }
   }
 }

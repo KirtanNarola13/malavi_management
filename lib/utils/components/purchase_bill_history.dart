@@ -145,7 +145,8 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                           receivedAmount >= grandTotal ? 'Paid' : 'Pending',
                     });
                     Navigator.of((!context.mounted) as BuildContext).pop();
-                    ScaffoldMessenger.of((!context.mounted) as BuildContext).showSnackBar(
+                    ScaffoldMessenger.of((!context.mounted) as BuildContext)
+                        .showSnackBar(
                       const SnackBar(content: Text('Payment recorded')),
                     );
                     getAllProducts(); // Refresh the list to show updated payment status
@@ -306,6 +307,7 @@ class _PurchaseBillHistoryState extends State<PurchaseBillHistory> {
                                   return PurchaseBillEdit(
                                     items: bill['billItems'],
                                     billID: bill.id,
+                                    partyName: bill['partyName'],
                                   );
                                 }));
                               },
