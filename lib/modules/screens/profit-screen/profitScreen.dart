@@ -142,16 +142,24 @@ class _ProfitScreenState extends State<ProfitScreen> {
                         int quantity =
                             int.tryParse(item['quantity']?.toString() ?? '0') ??
                                 0;
+                        int freeQuantity = int.tryParse(
+                                item['freeQuantity']?.toString() ?? '0') ??
+                            0;
 
                         double itemProfit =
                             (saleRate - purchaseRate) * quantity;
+
+                        // print(
+                        //     'Item Profit: $itemProfit for totalQuantity: $totalQuantity, saleRate: $saleRate, purchaseRate: $purchaseRate');
+
                         totalProfit += itemProfit;
                       }
 
-                      // Apply cash discount to total profit
                       double discountAmount =
                           (totalProfit * cashDiscount) / 100;
                       totalProfit -= discountAmount;
+
+                      print('Total Profit after discount: $totalProfit');
 
                       return Card(
                         margin: const EdgeInsets.all(15),

@@ -706,7 +706,7 @@ class _SaleBillEditState extends State<SaleBillEdit> {
   }
 
   Future<void> _saveOrUpdateBill() async {
-    if (!_formKey.currentState!.validate()) return;
+    // if (!_formKey.currentState!.validate()) return;
 
     final confirmed = await showDialog<bool>(
       context: context,

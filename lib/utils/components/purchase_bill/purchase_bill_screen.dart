@@ -630,6 +630,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
           'purchaseRate': purchaseRate,
           'mrp': mrp,
           'productName': productName,
+          'purchaseHistoryId': purchaseHistoryDocRef.id,
           'image_url': image,
           'saleRate': saleRate,
           'margin': margin,

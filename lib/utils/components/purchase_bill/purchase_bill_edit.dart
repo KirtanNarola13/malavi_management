@@ -663,6 +663,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
               'purchaseRate': newItem['purchaseRate'],
               'mrp': newItem['mrp'],
               'productName': productName,
+              'purchaseHistoryId': purchaseHistoryRef.id,
               'image_url': newItem['image_url'],
               'saleRate': newItem['saleRate'],
               'margin': newItem['margin'],
@@ -677,11 +678,12 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
       }
 
       Navigator.of(context).pop(); // Close the saving dialog
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => const NavBarScreen(initialIndex: 0),
         ),
+        (route) => false,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Purchase Bill Updated Successfully')),
