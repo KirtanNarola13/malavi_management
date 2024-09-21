@@ -511,7 +511,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
   void calculateGrandTotal() {
     grandTotal = billItems.fold(
         0.0, (total, item) => total + (item['totalAmount'] ?? 0.0));
-    grandTotalController.text = grandTotal.toString();
+    double.parse(grandTotalController.text) == grandTotal;
   }
 
   Future<String> _generateBillNumber() async {
@@ -616,7 +616,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
         'partyName': selectedParty!,
         'billItems': billItems,
         'paymentStatus': 'Pending',
-        'grandTotal': grandTotal.toString(),
+        'grandTotal': grandTotal,
         'createdAt': existingBillData['createdAt'],
         'updatedAt': Timestamp.now(),
       }, SetOptions(merge: true));
@@ -624,7 +624,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
       // Update product stock and purchase history
       for (final newItem in billItems) {
         final productName = newItem['productName'];
-        final newQuantity = newItem['quantity'] as int;
+        final newQuantity = (newItem['quantity'] as num).toInt(); // Cast to int
 
         // Find the corresponding existing item
         final existingItem = existingBillItems.firstWhere(
@@ -632,7 +632,8 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
           orElse: () => <String, dynamic>{},
         );
 
-        final oldQuantity = existingItem['quantity'] as int? ?? 0;
+        final oldQuantity = (existingItem['quantity'] as num?)?.toInt() ??
+            0; // Handle oldQuantity as int
         final quantityDifference = newQuantity - oldQuantity;
 
         if (quantityDifference != 0) {
@@ -645,11 +646,13 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
           if (productDocSnapshot.exists) {
             final productData =
                 productDocSnapshot.data() as Map<String, dynamic>;
-            final currentStock = productData['totalStock'] as int? ?? 0;
+            final currentStock =
+                (productData['totalStock'] as num).toInt(); // Cast to int
 
             // Update product stock
             await productDocRef.update({
-              'totalStock': currentStock + quantityDifference,
+              'totalStock': currentStock +
+                  quantityDifference, // Update stock by difference
               'companyName': companyName,
               'categoryName': categoryName,
               'updatedAt': Timestamp.now(),
@@ -659,7 +662,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
             final purchaseHistoryRef =
                 productDocRef.collection('purchaseHistory');
             await purchaseHistoryRef.add({
-              'quantity': quantityDifference,
+              'quantity': quantityDifference, // Log the difference
               'purchaseRate': newItem['purchaseRate'],
               'mrp': newItem['mrp'],
               'productName': productName,
@@ -676,6 +679,9 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
           }
         }
       }
+
+      _updateExistingStock(existingBillItems, productStockRef);
+      _updateNewStock(billItems, productStockRef);
 
       Navigator.of(context).pop(); // Close the saving dialog
       Navigator.pushAndRemoveUntil(

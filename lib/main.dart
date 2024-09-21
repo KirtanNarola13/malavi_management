@@ -5,12 +5,12 @@ import 'package:malavi_management/modules/screens/bill-screen/bill_product_edit.
 import 'package:malavi_management/modules/screens/nav-bar-screen/nav_bar_screen.dart';
 import 'package:malavi_management/utils/components/product_edit_purchase_bill_history.dart';
 import 'package:malavi_management/utils/helpers/auth_helper.dart';
+
 import 'modules/screens/login-screen/view/login.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -19,8 +19,8 @@ Future<void> main() async {
           : const HomePage(),
       routes: {
         'productEditScreenPurchaseBillHistory': (context) =>
-            ProductEditPurchaseBillHistory(),
-        'saleBillProductEdit': (context) => BillProductEdit(),
+            const ProductEditPurchaseBillHistory(),
+        'saleBillProductEdit': (context) => const BillProductEdit(),
       },
     ),
   );

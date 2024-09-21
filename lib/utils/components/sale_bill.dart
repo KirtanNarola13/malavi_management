@@ -1,7 +1,8 @@
 import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SellBillScreen extends StatefulWidget {
   const SellBillScreen({super.key});
@@ -15,6 +16,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
   String? selectedProduct;
   String partyAddress = "";
   String? selectedPartyProduct;
+
   int? selectedQuantity;
   String? salesMan;
 
@@ -718,44 +720,86 @@ class _SellBillScreenState extends State<SellBillScreen> {
 
   int fetchQuantity = 0;
   int finalQuantity = 0;
-  Future<void> fetchStock(String productName, String partyProductId,
-      int decreementedQuatity) async {
-    final productDoc = await FirebaseFirestore.instance
-        .collection('productStock')
-        .doc(productName)
-        .get();
-
-    if (productDoc.exists) {
-      final partyProductDoc = await FirebaseFirestore.instance
+  Future<void> updateProductStock(
+      String productName,
+      String selectedPartyProductId,
+      int quantityToSell,
+      String productMrp) async {
+    try {
+      // Fetch all party product documents with the same product name
+      final productDocs = await FirebaseFirestore.instance
           .collection('productStock')
           .doc(productName)
           .collection('purchaseHistory')
-          .doc(partyProductId)
+          .where('mrp',
+              isEqualTo:
+                  productMrp) // Assuming selectedPartyProductMrp is available
           .get();
 
-      if (partyProductDoc.exists) {
-        setState(() {
-          finalQuantity = partyProductDoc['quantity'] - decreementedQuatity;
-        });
-        await FirebaseFirestore.instance
-            .collection('productStock')
-            .doc(productName)
-            .collection('purchaseHistory')
-            .doc(partyProductId)
-            .update({'quantity': finalQuantity}).then((_) {
-          var totalQuantity = productDoc['totalStock'] - decreementedQuatity;
-          FirebaseFirestore.instance
+      List<DocumentSnapshot> validDocs = [];
+      int remainingQuantityToSell = quantityToSell;
+
+      // Loop through all documents to check available stock
+      for (var doc in productDocs.docs) {
+        int availableQuantity = doc['quantity'];
+        if (availableQuantity > 0) {
+          validDocs.add(doc);
+        }
+      }
+
+      if (validDocs.isEmpty) {
+        // Handle case where no documents with matching MRP are found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No stock available with the specified MRP')),
+        );
+        return;
+      }
+
+      // Process sale from the documents with valid stock
+      for (var doc in validDocs) {
+        String docId = doc.id;
+        int availableQuantity = doc['quantity'];
+
+        if (remainingQuantityToSell <= availableQuantity) {
+          // Update stock in the current document
+          await FirebaseFirestore.instance
               .collection('productStock')
               .doc(productName)
-              .update({'totalStock': totalQuantity});
-        });
-      } else {
-        // Handle the case where the party product document does not exist
-        print('Party product document does not exist');
+              .collection('purchaseHistory')
+              .doc(docId)
+              .update(
+                  {'quantity': availableQuantity - remainingQuantityToSell});
+          remainingQuantityToSell = 0;
+          break;
+        } else {
+          // Update stock in the current document and continue to the next
+          await FirebaseFirestore.instance
+              .collection('productStock')
+              .doc(productName)
+              .collection('purchaseHistory')
+              .doc(docId)
+              .update({'quantity': 0});
+          remainingQuantityToSell -= availableQuantity;
+        }
       }
-    } else {
-      // Handle the case where the main product document does not exist
-      print('Product document does not exist');
+
+      if (remainingQuantityToSell > 0) {
+        // Handle case where not enough stock was found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not enough stock to fulfill the sale')),
+        );
+      } else {
+        // Successfully processed the sale
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Stock updated successfully')),
+        );
+      }
+    } catch (e) {
+      print('Error updating stock: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error updating stock')),
+      );
     }
   }
 
@@ -772,7 +816,8 @@ class _SellBillScreenState extends State<SellBillScreen> {
         int finalQuantity = int.parse(item['quantity'].toString());
         _dQuantity = finalQuantity + finalFreeQuantity;
 
-        await fetchStock(item['productName'], item['partyProduct'], _dQuantity);
+        await updateProductStock(item['productName'], selectedPartyProduct!,
+            _dQuantity, item['mrp'].toString());
         itemsToSave.add({
           'partyName': item['partyName'],
           'partyAddress': item['partyAddress'],

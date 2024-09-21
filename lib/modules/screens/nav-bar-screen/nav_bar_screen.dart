@@ -19,7 +19,7 @@ class _NavBarScreenState extends State<NavBarScreen> {
   int currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    HomeScreen(),
     const AllProducts(),
     const BillScreen(),
     const ProfitScreen(),

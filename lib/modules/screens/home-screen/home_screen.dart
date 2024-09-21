@@ -3,18 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:malavi_management/utils/components/add_account.dart';
 import 'package:malavi_management/utils/components/add_category.dart';
 import 'package:malavi_management/utils/components/product_screen.dart';
-import 'package:malavi_management/utils/components/purchase_bill_history.dart';
 import 'package:malavi_management/utils/components/purchase_bill/purchase_bill_screen.dart';
+import 'package:malavi_management/utils/components/purchase_bill_history.dart';
 import 'package:malavi_management/utils/components/sale_bill.dart';
 import 'package:malavi_management/utils/components/view_stoke.dart';
 
 import '../../../utils/components/add_company.dart';
+import '../../../utils/helpers/stock_helper.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({Key? key}) : super(key: key);
+
+  Future<void> updateStock() async {
+    await StockHelper.stockHelper.removeNegativeStockEntries();
+  }
 
   @override
   Widget build(BuildContext context) {
+    updateStock();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
