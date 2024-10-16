@@ -163,7 +163,7 @@ class _SellBillScreenState extends State<SellBillScreen> {
 
                   return DropdownSearch<String>(
                     items:
-                        items.map((item) => item['label'] as String).toList(),
+                       (filter, loadProps) =>  items.map((item) => item['label'] as String).toList(),
                     selectedItem: selectedProduct != null
                         ? items.firstWhere(
                             (item) => item['id'] == selectedProduct)['label']
@@ -178,17 +178,15 @@ class _SellBillScreenState extends State<SellBillScreen> {
                     popupProps: PopupProps.menu(
                       showSearchBox: true,
                     ),
-                    dropdownDecoratorProps: DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
+                    decoratorProps: DropDownDecoratorProps(
+                      decoration: InputDecoration(
                         labelText: 'Select Product',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                    clearButtonProps: ClearButtonProps(
-                      isVisible: true,
-                    ),
+
                   );
                 },
               ),
@@ -718,23 +716,33 @@ class _SellBillScreenState extends State<SellBillScreen> {
     }
   }
 
-  int fetchQuantity = 0;
-  int finalQuantity = 0;
   Future<void> updateProductStock(
       String productName,
       String selectedPartyProductId,
       int quantityToSell,
-      String productMrp) async {
+      double productMrp) async { // changed productMrp to int
     try {
-      // Fetch all party product documents with the same product name
+      // Log the values of productName and productMrp to check for any issues
+      print('Product Name: $productName, Product MRP: $productMrp');
+
+      // Fetch all party product documents with the same product name and MRP
       final productDocs = await FirebaseFirestore.instance
           .collection('productStock')
           .doc(productName)
           .collection('purchaseHistory')
-          .where('mrp',
-              isEqualTo:
-                  productMrp) // Assuming selectedPartyProductMrp is available
+          .where('mrp', isEqualTo: productMrp) // Now using productMrp as int
           .get();
+
+      print('Fetched productDocs: ${productDocs.docs.length}'); // Log the number of documents fetched
+
+      if (productDocs.docs.isEmpty) {
+        // Handle case where no documents with matching MRP are found
+        print('No stock available with the specified MRP');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No stock available with the specified MRP')),
+        );
+        return;
+      }
 
       List<DocumentSnapshot> validDocs = [];
       int remainingQuantityToSell = quantityToSell;
@@ -742,16 +750,17 @@ class _SellBillScreenState extends State<SellBillScreen> {
       // Loop through all documents to check available stock
       for (var doc in productDocs.docs) {
         int availableQuantity = doc['quantity'];
+        print('Doc ID: ${doc.id}, Available Quantity: $availableQuantity'); // Log each document's available quantity
         if (availableQuantity > 0) {
           validDocs.add(doc);
         }
       }
 
       if (validDocs.isEmpty) {
-        // Handle case where no documents with matching MRP are found
+        // Handle case where no valid stock is available
+        print('No valid stock found');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No stock available with the specified MRP')),
+          const SnackBar(content: Text('No valid stock found')),
         );
         return;
       }
@@ -761,36 +770,43 @@ class _SellBillScreenState extends State<SellBillScreen> {
         String docId = doc.id;
         int availableQuantity = doc['quantity'];
 
+        print('Processing Doc ID: $docId, Available Quantity: $availableQuantity'); // Log the doc being processed
+
         if (remainingQuantityToSell <= availableQuantity) {
           // Update stock in the current document
+          print('Updating stock in Doc ID: $docId, new quantity: ${availableQuantity - remainingQuantityToSell}'); // Log the stock update
           await FirebaseFirestore.instance
               .collection('productStock')
               .doc(productName)
               .collection('purchaseHistory')
               .doc(docId)
-              .update(
-                  {'quantity': availableQuantity - remainingQuantityToSell});
-          remainingQuantityToSell = 0;
+              .update({'quantity': availableQuantity - remainingQuantityToSell});
+
+          remainingQuantityToSell = 0; // All stock sold from this document
           break;
         } else {
           // Update stock in the current document and continue to the next
+          print('Updating stock in Doc ID: $docId to 0, remaining to sell: $remainingQuantityToSell'); // Log the full depletion of stock in this document
           await FirebaseFirestore.instance
               .collection('productStock')
               .doc(productName)
               .collection('purchaseHistory')
               .doc(docId)
               .update({'quantity': 0});
-          remainingQuantityToSell -= availableQuantity;
+
+          remainingQuantityToSell -= availableQuantity; // Decrease remaining quantity
         }
       }
 
       if (remainingQuantityToSell > 0) {
         // Handle case where not enough stock was found
+        print('Not enough stock to fulfill the sale');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Not enough stock to fulfill the sale')),
         );
       } else {
         // Successfully processed the sale
+        print('Stock updated successfully');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Stock updated successfully')),
         );
@@ -806,65 +822,81 @@ class _SellBillScreenState extends State<SellBillScreen> {
   void saveSellBill() async {
     log(partyAddress);
     if (billItems.isNotEmpty) {
-      await fetchLastBillNumber(); // Fetch the last bill number and generate a new one
-      double grandTotal = 0;
-      int _dQuantity = 0;
-      List<Map<String, dynamic>> itemsToSave = [];
-      for (var item in billItems) {
-        grandTotal += item['netAmount'];
-        int finalFreeQuantity = int.parse(item['freeQuantity'].toString());
-        int finalQuantity = int.parse(item['quantity'].toString());
-        _dQuantity = finalQuantity + finalFreeQuantity;
+      try {
+        await fetchLastBillNumber(); // Fetch the last bill number and generate a new one
+        double grandTotal = 0;
+        int _dQuantity = 0;
+        List<Map<String, dynamic>> itemsToSave = [];
 
-        await updateProductStock(item['productName'], selectedPartyProduct!,
-            _dQuantity, item['mrp'].toString());
-        itemsToSave.add({
-          'partyName': item['partyName'],
-          'partyAddress': item['partyAddress'],
-          'productName': item['productName'],
-          'salesMan': item['salesMan'],
-          'quantity': item['quantity'],
-          'freeQuantity': item['freeQuantity'],
-          'mrp': item['mrp'],
-          'margin': item['margin'],
-          'saleRate': item['saleRate'],
-          'purchaseRate': item['purchaseRate'],
-          'amount': item['amount'],
-          'discount': item['discount'],
-          'netAmount': item['netAmount'],
-          'date':
-              "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+        for (var item in billItems) {
+          grandTotal += item['netAmount'];
+          int finalFreeQuantity = int.parse(item['freeQuantity'].toString());
+          int finalQuantity = int.parse(item['quantity'].toString());
+          _dQuantity = finalQuantity + finalFreeQuantity;
+
+          print('Processing item: ${item['productName']}, quantity to sell: $_dQuantity'); // Log each item being processed
+
+          // Call updateProductStock to decrement stock
+          await updateProductStock(item['productName'], selectedPartyProduct!, _dQuantity, double.parse(item['mrp']));
+
+          itemsToSave.add({
+            'partyName': item['partyName'],
+            'partyAddress': item['partyAddress'],
+            'productName': item['productName'],
+            'salesMan': item['salesMan'],
+            'quantity': item['quantity'],
+            'freeQuantity': item['freeQuantity'],
+            'mrp': item['mrp'],
+            'margin': item['margin'],
+            'saleRate': item['saleRate'],
+            'purchaseRate': item['purchaseRate'],
+            'amount': item['amount'],
+            'discount': item['discount'],
+            'netAmount': item['netAmount'],
+            'date': "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+          });
+        }
+
+        // Save the sell bill
+        print('Saving sell bill with bill number: $billNumber, grand total: $grandTotal'); // Log the sell bill details
+        await FirebaseFirestore.instance.collection('sellBills').add({
+          'billNumber': billNumber,
+          'grandTotal': grandTotal,
+          'salesMan': salesMan,
+          'date': "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
+          'timeStamp': DateTime.now(),
+          'party_name': selectedParty,
+          'kasar': 0,
+          'cashDiscount': 0.0,
+          'paymentStatus': 'pending',
+          'partyAddress': partyAddress,
+          'items': itemsToSave,
+        }).then((_) {
+          salesMan = null; // Reset the salesMan variable after saving the bill
         });
+
+        // Confirm the bill is saved
+        print('Sell Bill Saved');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sell Bill Saved')),
+        );
+
+        setState(() {
+          billItems.clear(); // Clear the items list after saving the bill
+        });
+      } catch (e) {
+        // Handle any errors
+        print('Error saving sell bill: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving sell bill: ${e.toString()}')),
+        );
       }
-
-      await FirebaseFirestore.instance.collection('sellBills').add({
-        'billNumber': billNumber,
-        'grandTotal': grandTotal,
-        'salesMan': salesMan,
-        'date':
-            "${DateTime.now().day} / ${DateTime.now().month} / ${DateTime.now().year}",
-        'timeStamp': DateTime.now(),
-        'party_name': selectedParty,
-        'kasar': 0,
-        'cashDiscount': 0.0,
-        'paymentStatus': 'pending',
-        'partyAddress': partyAddress,
-        'items': itemsToSave,
-      }).then((_) {
-        salesMan == null;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sell Bill Saved')),
-      );
-
-      setState(() {
-        billItems.clear();
-      });
     } else {
+      print('No items to save');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No items to save')),
       );
     }
   }
+
 }

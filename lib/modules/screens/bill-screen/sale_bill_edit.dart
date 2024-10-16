@@ -216,7 +216,9 @@ class _SaleBillEditState extends State<SaleBillEdit> {
         }).toList();
 
         return DropdownSearch<String>(
-          items: items.map((item) => item['label'] as String).toList(),
+          items: (filter, loadProps) {
+            return items.map((item) => item['label'] as String).toList();
+          },
           selectedItem: selectedProduct != null
               ? items
                   .firstWhere((item) => item['id'] == selectedProduct)['label']
@@ -228,8 +230,8 @@ class _SaleBillEditState extends State<SaleBillEdit> {
               selectedPartyProduct = null;
             });
           },
-          dropdownDecoratorProps: DropDownDecoratorProps(
-            dropdownSearchDecoration: InputDecoration(
+        decoratorProps: DropDownDecoratorProps(
+            decoration: InputDecoration(
               labelText: 'Select Product',
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

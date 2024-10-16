@@ -97,7 +97,7 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                   }).toList();
                   return DropdownSearch<String>(
                     items:
-                        items.map((item) => item['label'] as String).toList(),
+                        (filter, loadProps) => items.map((item) => item['label'] as String).toList(),
                     selectedItem: selectedProduct != null
                         ? items.firstWhere(
                             (item) => item['id'] == selectedProduct)['label']
@@ -112,17 +112,15 @@ class _PurchaseBillScreenState extends State<PurchaseBillScreen> {
                     popupProps: const PopupProps.menu(
                       showSearchBox: true,
                     ),
-                    dropdownDecoratorProps: DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
+                    decoratorProps: DropDownDecoratorProps(
+                      decoration: InputDecoration(
                         labelText: 'Select Product',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                    clearButtonProps: const ClearButtonProps(
-                      isVisible: true,
-                    ),
+
                   );
                   // return DropdownButtonFormField<String>(
                   //   value: selectedProduct,

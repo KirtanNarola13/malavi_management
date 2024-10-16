@@ -123,7 +123,9 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
                   }).toList();
                   return DropdownSearch<String>(
                     items:
-                        items.map((item) => item['label'] as String).toList(),
+                        (filter, loadProps) {
+                          return items.map((item) => item['label'] as String).toList();
+                        },
                     selectedItem: selectedProduct != null
                         ? items.firstWhere(
                             (item) => item['id'] == selectedProduct)['label']
@@ -138,17 +140,15 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
                     popupProps: PopupProps.menu(
                       showSearchBox: true,
                     ),
-                    dropdownDecoratorProps: DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
+                    decoratorProps: DropDownDecoratorProps(
+                      decoration: InputDecoration(
                         labelText: 'Select Product',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                    clearButtonProps: ClearButtonProps(
-                      isVisible: true,
-                    ),
+
                   );
                   // return DropdownButtonFormField<String>(
                   //   value: selectedProduct,

@@ -49,12 +49,16 @@ class StockHelper {
         } else if (quantity > 0) {
           priviousesDocRef = purchaseHistoryDoc.reference;
           tempData = purchaseData;
-          totalNativeStock = 0;
+
           if (totalNativeStock <= 0) {
-            log("========= $purchaseData ========== ${purchaseHistoryDoc.id} ===========  $totalNativeStock ======== ${purchaseData['quantity'] - totalNativeStock}");
+            totalStock += quantity;
             await purchaseHistoryDoc.reference.update(
-                {'quantity': purchaseData['quantity'] - totalNativeStock});
+                {'quantity': purchaseData['quantity'] + totalNativeStock}).then((e){
+
+            });
           }
+
+          totalNativeStock = 0;
         } else {
           // Otherwise, add the quantity to the total stock
           totalStock += quantity;
