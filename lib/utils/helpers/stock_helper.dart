@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StockHelper {
@@ -11,7 +13,13 @@ class StockHelper {
 
     // Fetch all products in productStock collection
     final productDocsSnapshot = await productStockRef.get();
+    final finalTempRed =
+        await FirebaseFirestore.instance.collection('productStock');
+    final tempSnapshot = await finalTempRed.get();
+    var priviousesDocRef = tempSnapshot.docs[0].reference;
+    var tempData = tempSnapshot.docs[0].data();
 
+    int totalNativeStock = 0;
     for (final productDoc in productDocsSnapshot.docs) {
       final productName = productDoc.id;
 
@@ -31,15 +39,29 @@ class StockHelper {
 
         if (quantity < 0) {
           // If the quantity is negative, remove the document from purchaseHistory
+
+          totalNativeStock += quantity;
+
           await purchaseHistoryDoc.reference.delete();
+
           print(
               'Removed purchase history entry with negative stock for $productName');
+        } else if (quantity > 0) {
+          priviousesDocRef = purchaseHistoryDoc.reference;
+          tempData = purchaseData;
+          totalNativeStock = 0;
+          if (totalNativeStock <= 0) {
+            log("========= $purchaseData ========== ${purchaseHistoryDoc.id} ===========  $totalNativeStock ======== ${purchaseData['quantity'] - totalNativeStock}");
+            await purchaseHistoryDoc.reference.update(
+                {'quantity': purchaseData['quantity'] - totalNativeStock});
+          }
         } else {
           // Otherwise, add the quantity to the total stock
           totalStock += quantity;
         }
       }
-
+      // await priviousesDocRef
+      //     .update({'quantity': tempData['quantity'] - totalNativeStock});
       // After removing negative stock entries, update the total stock for the product
       await productStockRef.doc(productName).update({
         'totalStock': totalStock,

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -680,7 +679,7 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
         }
       }
 
-      _updateExistingStock(existingBillItems, productStockRef);
+      // _updateExistingStock(existingBillItems, productStockRef);
       _updateNewStock(billItems, productStockRef);
 
       Navigator.of(context).pop(); // Close the saving dialog
@@ -737,8 +736,8 @@ class _PurchaseBillEditState extends State<PurchaseBillEdit> {
       final productDocSnapshot = await productDocRef.get();
       double totalStock = productDocSnapshot.exists
           ? (productDocSnapshot.data() as Map<String, dynamic>)['totalStock'] ??
-              0.0
-          : 0.0;
+              0
+          : 0;
 
       await productDocRef.set({
         'productName': productName,
